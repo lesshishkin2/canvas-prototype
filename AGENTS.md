@@ -4,7 +4,7 @@
 
 This is the user's isolated desktop canvas UX prototype. Keep all page edits in memory only; do not persist edited content or send it to services. Reload restores the default FORMA gallery. The user has authorized a private GitHub repository and deployment to Vercel. Topbar, section actions, link editing, and image editing are intentional demos.
 
-The closest editable target owns the visible toolbar. Maintain this action order: image replacement/editing, item link, duplicate/delete, then a separated drag handle. No arrow reorder buttons. Preserve 26 px dark element controls from the Figma reference, and the white Site Builder topbar and translucent section overlay.
+The closest editable target owns the contextual toolbar; its section and repeatable-item ancestors keep their own toolbars visible while the pointer is anywhere inside them. Each level has a separate panel. Maintain this action order: image replacement/editing, item link, duplicate/delete, then a separated drag handle. No arrow reorder buttons. Preserve 26 px dark element controls from the Figma reference, and the white Site Builder topbar and translucent section overlay.
 
 Text editing, duplication, deletion with a last-item guard, and sorting within each original list are functional. Drag starts only from the handle after 6 px. Escape and dropping outside the original container cancel. Desktop Chrome at 1024, 1440, and 1920 px is the requested scope; touch and a global undo history are excluded.
 
@@ -14,7 +14,9 @@ Button, text-link, and menu toolbars align to the upper-right corner with the sa
 
 ## Local workflow
 
-The “Рассмотреть ближе” section after the collection contains the independent `studies` list. Its repeatable cards have ordinary inline images, not backgrounds or item links. Card tools are exactly duplicate/delete/drag; the nested image owns only replacement/editing tools. Hovering the image or text hides the parent toolbar. Keep image targets and text fields unique when duplicating, and omit editor targets from the drag preview.
+Keep persistent ancestors stable: section → repeatable card/row → hovered image/link. Place each panel at its own anchor, measuring the entire hierarchy before paint. If a child would overlap an ancestor, place it below with a 6 px gap while preserving right alignment; do not move the parent. Keep compact link/menu tools off their text labels. Recalculate the stack on scroll/resize. At the viewport bottom, use free space to the left if there is no room below. Moving through any active panel or its safe gap retains the whole hierarchy. Test zero image padding in `tests/hierarchical-tools-checks.js`; the page keeps its existing 6 px spacing.
+
+The “Рассмотреть ближе” section after the collection contains the independent `studies` list. Its repeatable cards have ordinary inline images, not backgrounds or item links. Card tools are exactly duplicate/delete/drag; the nested image owns only replacement/editing tools. Hovering the image, text or button preserves the parent toolbar; only the child panel changes. Keep image targets and text fields unique when duplicating, and omit editor targets from the drag preview.
 
 The user is testing tight image spacing in these cards: keep only 6 px between the image and the top/side card edges. Text retains its 20 px side inset. Do not reserve a large empty strip above the image for parent tools.
 
@@ -24,7 +26,7 @@ An already open inset item/image toolbar owns a protective hover bridge across i
 
 Hover appearance and target changes require 150 ms on the same candidate; preserve the current target until then. Movement inside that candidate does not restart the timer. Returning to the active target, its protective bridge or its toolbar cancels the pending change. Keep the existing 180 ms close delay. Keyboard focus and text editing respond immediately. Cancel stale pending targets on editing, pointer actions, drag, structural actions, scroll, resize, window exit and blur. Keep the rationale and current values in UX-PATTERNS.md up to date with code changes.
 
-Each toolbar owner has fresh intrinsic measurements before its first visible frame; never reuse a section's positioned width for a compact toolbar. Observe the panel as well as its anchor. Hover entry/exit uses opacity only, 125 ms with cubic-bezier(0.23, 1, 0.32, 1); never animate toolbar coordinates or dimensions. A closing panel is inert, aria-hidden, non-interactive and excluded from hover resolution. Return during its exit reverses the same transition immediately. Replace owners without overlapping icon sets. Keyboard focus, editing, drag, structural actions and reduced motion bypass fades. Check first-visible-frame geometry in tests/toolbar-motion-checks.js.
+Each toolbar owner has fresh intrinsic measurements before its first visible frame; never reuse a section's positioned width for a compact toolbar. Observe the panel as well as its anchor. Hover entry/exit uses opacity only, 125 ms with cubic-bezier(0.23, 1, 0.32, 1); never animate toolbar coordinates or dimensions. A closing panel is inert, aria-hidden, non-interactive and excluded from hover resolution. Return during its exit reverses the same transition immediately. Replace owners at the same level without overlapping icon sets. Keyboard focus, editing, drag, structural actions and reduced motion bypass fades. Check first-visible-frame geometry in tests/toolbar-motion-checks.js.
 
 Run the local server yourself and open the preview in the browser available to this environment. Do not give the user server-start instructions when you can run it.
 

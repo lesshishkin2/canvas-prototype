@@ -2,7 +2,11 @@
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const frame = () => new Promise(requestAnimationFrame);
 const query = (selector) => document.querySelector(selector);
-const panel = () => query('.floating-tools:not([data-exiting="true"])');
+const panels = () => [
+  ...document.querySelectorAll('.floating-tools:not([data-exiting="true"])'),
+];
+const panel = (id) =>
+  id ? panels().find((p) => p.dataset.owner === id) : panels().at(-1);
 const assert = (condition, message) => {
   if (!condition) throw Error(message);
 };
@@ -46,7 +50,15 @@ function checkPosition(tools, owner) {
       Math.abs(p.right - (r.right - 8)) < 1,
       `First-frame horizontal jump for ${tools.dataset.owner}: ${p.right} instead of ${r.right - 8}`,
     );
-    if (owner.dataset.kind !== "link")
+    if (owner.dataset.kind === "image" && owner.closest('[data-kind="item"]')) {
+      const parent = panel(
+        owner.closest('[data-kind="item"]').dataset.item,
+      ).getBoundingClientRect();
+      assert(
+        Math.abs(p.top - (parent.bottom + 6)) < 1,
+        "Image tools are not stacked with a 6px gap",
+      );
+    } else if (owner.dataset.kind !== "link")
       assert(Math.abs(p.top - (r.top + 8)) < 1, "Toolbar top position jumped");
     else
       assert(
@@ -76,16 +88,30 @@ export async function runToolbarMotionChecks() {
   const transitions = [];
   for (const id of targets) {
     const owner = query(`[data-editor-target="${id}"]`);
+    const existing = panel(id);
     pointAt(owner);
     const samples = [];
     const start = performance.now();
     while (performance.now() - start < 1200) {
       await frame();
-      const tools = panel();
-      assert(
-        document.querySelectorAll(".floating-tools").length <= 1,
-        "Two toolbar owners overlap",
-      );
+      const tools = panel(id);
+      const visible = panels().filter((p) => p.style.visibility === "visible");
+      for (let i = 0; i < visible.length; i++)
+        for (let j = i + 1; j < visible.length; j++) {
+          const a = visible[i].getBoundingClientRect(),
+            b = visible[j].getBoundingClientRect();
+          assert(
+            !(
+              a.left < b.right &&
+              a.right > b.left &&
+              a.top < b.bottom &&
+              a.bottom > b.top
+            ),
+            "Ancestor and child tools overlap",
+          );
+        }
+      if (existing)
+        assert(panel(id) === existing, "Persistent ancestor remounted");
       if (tools?.dataset.owner !== id) continue;
       const css = getComputedStyle(tools),
         opacity = Number(css.opacity);
@@ -100,7 +126,7 @@ export async function runToolbarMotionChecks() {
     }
     assert(samples.length > 0, `No visible frames for ${id}`);
     assert(
-      samples.some((s) => s.opacity > 0 && s.opacity < 1),
+      existing || samples.some((s) => s.opacity > 0 && s.opacity < 1),
       `No fade-in frames for ${id}`,
     );
     assert(samples.at(-1).opacity === 1, `Fade-in did not finish for ${id}`);
@@ -109,7 +135,9 @@ export async function runToolbarMotionChecks() {
       visibleFrames: samples.length,
       first: samples[0],
       last: samples.at(-1),
+      persistent: !!existing,
     });
+    await wait(200);
   }
   // Fade-out stays in place and immediately gives up clicks and keyboard focus.
   const last = panel(),
@@ -119,7 +147,9 @@ export async function runToolbarMotionChecks() {
   const start = performance.now();
   while (performance.now() - start < 400) {
     await frame();
-    const closing = query('.floating-tools[data-exiting="true"]');
+    const closing = query(
+      '.floating-tools[data-owner="study-1.image"][data-exiting="true"]',
+    );
     if (!closing) continue;
     const css = getComputedStyle(closing),
       r = closing.getBoundingClientRect();

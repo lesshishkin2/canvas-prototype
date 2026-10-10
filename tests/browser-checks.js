@@ -8,7 +8,7 @@ const order = (list) =>
     (el) => el.dataset.item,
   );
 const field = (id) => query(`[data-field="${id}"]`);
-const toolbar = () => query('.floating-tools:not([data-exiting="true"])');
+const toolbar = () => all('.floating-tools:not([data-exiting="true"])').at(-1);
 const labels = () =>
   [...(toolbar()?.querySelectorAll("button") || [])].map((el) =>
     el.getAttribute("aria-label"),
@@ -135,6 +135,8 @@ export async function checkInsetToolbarBridge() {
   card.scrollIntoView({ block: "center" });
   await wait();
   const r = card.getBoundingClientRect();
+  const parentTools = () =>
+    query('.floating-tools[data-owner="study-1"]:not([data-exiting="true"])');
   const move = async (x, y, settle = true) => {
     const hit = document.elementFromPoint(x, y);
     assert(hit, "Pointer path left the viewport");
@@ -148,11 +150,8 @@ export async function checkInsetToolbarBridge() {
       "Direct image hover was blocked",
     );
     await move(r.right - 3, r.top + 3);
-    assert(
-      toolbar()?.dataset.owner === "study-1",
-      "Card edge did not open its tools",
-    );
-    const p = toolbar().getBoundingClientRect();
+    assert(!!parentTools(), "Card edge did not open its tools");
+    const p = parentTools().getBoundingClientRect();
     const start =
       direction === "top"
         ? { x: p.left + 13, y: r.top + 3 }
@@ -171,15 +170,12 @@ export async function checkInsetToolbarBridge() {
         false,
       );
       assert(
-        toolbar()?.dataset.owner === "study-1",
+        !!parentTools(),
         `${direction} approach switched to nested image tools`,
       );
     }
     await wait(220);
-    assert(
-      toolbar()?.dataset.owner === "study-1",
-      "Panel protection expired on a timer",
-    );
+    assert(!!parentTools(), "Panel protection expired on a timer");
     await move(p.left + 13, p.bottom + 4);
     assert(
       toolbar()?.dataset.owner === "study-1.image",
@@ -188,11 +184,11 @@ export async function checkInsetToolbarBridge() {
   }
   // Reach a real button through the narrow top gap, then exercise the action.
   await move(r.right - 3, r.top + 3);
-  const p = toolbar().getBoundingClientRect();
+  const p = parentTools().getBoundingClientRect();
   await move(p.left + 13, p.top - 1);
   await wait(220);
   assert(
-    toolbar()?.dataset.owner === "study-1",
+    !!parentTools(),
     "Slow movement in the image-covered gap lost the panel",
   );
   await move(p.left + 13, p.top + 13);
@@ -238,7 +234,7 @@ export async function checkHoverDwell() {
     at(b.left + b.width / 2, b.top + b.height / 2);
   };
   pointer(query(".editor-topbar"), "pointermove", 400, 20);
-  await wait(220);
+  await wait(360);
   imagePoint();
   await wait(55);
   assert(!toolbar(), "Initial tools appeared during a passing hover");
@@ -281,6 +277,8 @@ export async function checkHoverDwell() {
     toolbar()?.dataset.owner === "study-1",
     "Settled card hover did not switch tools",
   );
+  // Let the child finish exiting; returning during its fade intentionally reverses immediately.
+  await wait(150);
   imagePoint();
   await wait(55);
   const p = toolbar().getBoundingClientRect();
@@ -420,9 +418,9 @@ export async function runChecks() {
       panel = toolbar().getBoundingClientRect();
     assert(
       panel.top >= 66 &&
-        panel.bottom <= item.top &&
+        (panel.bottom <= item.top || panel.top >= item.bottom) &&
         Math.abs(panel.right - (item.right - 8)) < 1,
-      "Menu toolbar is not above the right edge or covers the topbar",
+      "Menu toolbar covers the label or topbar",
     );
     pointer(
       query('[data-section="menu"]'),
@@ -533,7 +531,10 @@ export async function runChecks() {
       "Wrong action order",
     );
     await hover(field("work-1.title"), false);
-    assert(!toolbar(), "Card toolbar covers text");
+    assert(
+      toolbar()?.dataset.owner === "work-1",
+      "Text hover lost parent tools",
+    );
     await hover(field("work-1.cta"), false);
     assert(
       labels().length === 1 && labels()[0] === "Редактировать ссылку · демо",
@@ -809,7 +810,10 @@ export async function runChecks() {
       "Image demos changed data or started dragging",
     );
     await hover(field("study-1.title"));
-    assert(!toolbar(), "Text hover left a parent/image panel visible");
+    assert(
+      toolbar()?.dataset.owner === "study-1",
+      "Text hover lost parent tools or retained image tools",
+    );
     visual.focus();
     await wait();
     assert(

@@ -6,6 +6,7 @@ import {
   useRef,
   useState,
   useCallback,
+  useMemo,
 } from "react";
 import { createPortal } from "react-dom";
 import {
@@ -20,13 +21,41 @@ import {
   Pencil,
   ArrowUpRight,
 } from "lucide-react";
+import { placeToolbar, TOP, TOOL_INSET } from "./toolbar-layout";
 
 const EditorContext = createContext(null);
 export const useEditor = () => useContext(EditorContext);
-const TOP = 66;
-const TOOL_INSET = 8;
 const HOVER_DWELL = 150;
 const HOVER_CLOSE = 180;
+
+function readTarget(source, instant = false) {
+  return {
+    node:
+      source.dataset.kind === "link"
+        ? source.closest(".canvas-link") || source
+        : source,
+    id: source.dataset.editorTarget,
+    kind: source.dataset.kind,
+    list: source.dataset.list,
+    item: source.dataset.item,
+    hasImage: source.dataset.image === "true",
+    hasLink: source.dataset.link === "true",
+    placement: source.dataset.toolPlacement,
+    section: source.closest("[data-section]")?.dataset.section,
+    instant,
+  };
+}
+
+function toolTargets(active) {
+  if (!active) return [null, null, null];
+  const section = active.node.closest('[data-kind="section"]');
+  const item = active.node.closest('[data-kind="item"]');
+  return [
+    section ? readTarget(section, active.instant) : null,
+    item ? readTarget(item, active.instant) : null,
+    ["image", "link"].includes(active.kind) ? active : null,
+  ];
+}
 
 export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
   const [active, setActive] = useState(null),
@@ -42,6 +71,46 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
     lastPoint = useRef(null),
     handlePressed = useRef(false);
   const handles = useRef(new Map());
+  const toolPanels = useRef(new Map());
+  const targets = useMemo(() => toolTargets(active), [active]);
+  const layoutTools = useCallback(() => {
+    const placed = [];
+    for (const entry of [...toolPanels.current.values()].sort(
+      (a, b) => a.level - b.level,
+    )) {
+      const { target, panel, setPosition } = entry;
+      const rect =
+        target.node.isConnected &&
+        placeToolbar(
+          target,
+          target.node.getBoundingClientRect(),
+          panel.getBoundingClientRect(),
+          { width: innerWidth, height: innerHeight },
+          placed
+            .filter((parent) => parent.target.node.contains(target.node))
+            .map((parent) => parent.rect),
+        );
+      const next = rect
+        ? { left: rect.left, top: rect.top, width: rect.sectionWidth }
+        : null;
+      setPosition((previous) =>
+        previous?.left === next?.left &&
+        previous?.top === next?.top &&
+        previous?.width === next?.width
+          ? previous
+          : next,
+      );
+      if (rect) placed.push({ target, rect });
+    }
+  }, []);
+  useLayoutEffect(() => {
+    window.addEventListener("scroll", layoutTools, true);
+    window.addEventListener("resize", layoutTools);
+    return () => {
+      window.removeEventListener("scroll", layoutTools, true);
+      window.removeEventListener("resize", layoutTools);
+    };
+  }, [layoutTools]);
   const choose = useCallback((target, immediate = false) => {
     activeRef.current = target;
     setImmediateExit(immediate);
@@ -126,52 +195,53 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       }
       const source = element?.closest("[data-editor-target]");
       const previous = activeRef.current;
-      const panel = document.querySelector(
-        '.floating-tools:not([data-exiting="true"])',
+      const panels = [...toolPanels.current.values()].filter(
+        ({ panel }) =>
+          panel.dataset.exiting !== "true" &&
+          panel.style.visibility === "visible",
       );
       // Join an inset panel to its owner's top/right edges. This only retains
       // an already open panel; nested targets elsewhere still resolve normally.
-      if (
-        event.type === "pointermove" &&
-        (previous?.kind === "item" || previous?.kind === "image") &&
-        previous.placement !== "above" &&
-        previous.node.contains(source) &&
-        panel?.dataset.owner === previous.id &&
-        panel.style.visibility === "visible"
-      ) {
-        const owner = previous.node.getBoundingClientRect(),
-          tools = panel.getBoundingClientRect();
+      for (const { target: ownerTarget, panel } of panels) {
         if (
-          event.clientX >= Math.max(owner.left, tools.left) &&
-          event.clientX <= Math.min(owner.right, tools.right + TOOL_INSET) &&
-          event.clientY >= Math.max(TOP, owner.top, tools.top - TOOL_INSET) &&
-          event.clientY <= Math.min(owner.bottom, tools.bottom)
+          event.type === "pointermove" &&
+          (ownerTarget.kind === "item" || ownerTarget.kind === "image") &&
+          ownerTarget.placement !== "above" &&
+          ownerTarget.node.contains(source)
         ) {
-          cancelHoverTimers();
-          return;
+          const owner = ownerTarget.node.getBoundingClientRect(),
+            tools = panel.getBoundingClientRect();
+          if (
+            event.clientX >= Math.max(owner.left, tools.left) &&
+            event.clientX <= Math.min(owner.right, tools.right + TOOL_INSET) &&
+            event.clientY >= Math.max(TOP, owner.top, tools.top - TOOL_INSET) &&
+            event.clientY <= Math.min(owner.bottom, tools.bottom)
+          ) {
+            cancelHoverTimers();
+            return;
+          }
         }
-      }
-      // A short bridge lets the pointer cross the gap above/below a link.
-      if (
-        event.type === "pointermove" &&
-        (previous?.kind === "link" || previous?.placement === "above") &&
-        panel &&
-        (!source || source.contains(previous.node))
-      ) {
-        const a = previous.node.getBoundingClientRect(),
-          b = panel.getBoundingClientRect();
-        const left = Math.min(a.left, b.left) - 3,
-          right = Math.max(a.right, b.right) + 3;
-        const top = Math.min(a.top, b.top),
-          bottom = Math.max(a.bottom, b.bottom);
+        // A short bridge lets the pointer cross the gap above/below a link.
         if (
-          event.clientX >= left &&
-          event.clientX <= right &&
-          event.clientY >= top &&
-          event.clientY <= bottom
+          event.type === "pointermove" &&
+          (ownerTarget.kind === "link" || ownerTarget.placement === "above") &&
+          (!source || source.contains(ownerTarget.node))
         ) {
-          cancelHoverTimers();
-          return;
+          const a = ownerTarget.node.getBoundingClientRect(),
+            b = panel.getBoundingClientRect();
+          const left = Math.min(a.left, b.left) - 3,
+            right = Math.max(a.right, b.right) + 3;
+          const top = Math.min(a.top, b.top),
+            bottom = Math.max(a.bottom, b.bottom);
+          if (
+            event.clientX >= left &&
+            event.clientX <= right &&
+            event.clientY >= top &&
+            event.clientY <= bottom
+          ) {
+            cancelHoverTimers();
+            return;
+          }
         }
       }
       if (!source) {
@@ -185,23 +255,8 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       }
       clearTimeout(hideTimer.current);
       hideTimer.current = null;
-      const node =
-        source.dataset.kind === "link"
-          ? source.closest(".canvas-link") || source
-          : source;
-      const section = source.closest("[data-section]");
-      const target = {
-        node,
-        id: source.dataset.editorTarget,
-        kind: source.dataset.kind,
-        list: source.dataset.list,
-        item: source.dataset.item,
-        hasImage: source.dataset.image === "true",
-        hasLink: source.dataset.link === "true",
-        placement: source.dataset.toolPlacement,
-        section: section?.dataset.section,
-        instant: event.type === "focusin",
-      };
+      const target = readTarget(source, event.type === "focusin");
+      const { node } = target;
       if (event.type === "focusin") {
         cancelPendingHover();
         choose(target);
@@ -210,8 +265,11 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       // Returning during fade-out reverses the same panel instead of waiting
       // through another dwell and restarting its entrance from zero.
       if (
-        document.querySelector('.floating-tools[data-exiting="true"]')?.dataset
-          .owner === target.id
+        [...toolPanels.current.values()].some(
+          ({ panel }) =>
+            panel.dataset.exiting === "true" &&
+            panel.dataset.owner === target.id,
+        )
       ) {
         cancelPendingHover();
         choose(target);
@@ -308,12 +366,17 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
     document
       .querySelectorAll("[data-target-hover]")
       .forEach((n) => n.removeAttribute("data-target-hover"));
-    if (!editing && !dragging && active?.node)
-      active.node.setAttribute("data-target-hover", "true");
+    const highlighted = [active, ...targets].filter(Boolean);
+    if (!editing && !dragging)
+      highlighted.forEach(({ node }) =>
+        node.setAttribute("data-target-hover", "true"),
+      );
     return () => {
-      active?.node?.removeAttribute("data-target-hover");
+      highlighted.forEach(({ node }) =>
+        node.removeAttribute("data-target-hover"),
+      );
     };
-  }, [active, editing, dragging]);
+  }, [active, targets, editing, dragging]);
   const context = {
     active,
     editing,
@@ -324,27 +387,33 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
     stopDrag,
     suppress,
     handles,
+    toolPanels,
+    layoutTools,
     pointerPosition: lastPoint,
   };
   return (
     <EditorContext.Provider value={context}>
       {children}
-      <ToolLayer
-        target={editing ? null : active}
-        hidden={!!dragging}
-        immediate={
-          immediateExit || !!editing || !!dragging || !!active?.instant
-        }
-        counts={counts}
-        onDuplicate={(list, id) => {
-          onDuplicate(list, id);
-          suppress();
-        }}
-        onRemove={(list, id) => {
-          onRemove(list, id);
-          suppress();
-        }}
-      />
+      {targets.map((target, level) => (
+        <ToolLayer
+          key={level}
+          level={level}
+          target={editing ? null : target}
+          hidden={!!dragging}
+          immediate={
+            immediateExit || !!editing || !!dragging || !!active?.instant
+          }
+          counts={counts}
+          onDuplicate={(list, id) => {
+            onDuplicate(list, id);
+            suppress();
+          }}
+          onRemove={(list, id) => {
+            onRemove(list, id);
+            suppress();
+          }}
+        />
+      ))}
     </EditorContext.Provider>
   );
 }
@@ -381,6 +450,7 @@ export function ToolButton({
 }
 
 function ToolLayer({
+  level,
   target,
   hidden,
   immediate,
@@ -405,6 +475,7 @@ function ToolLayer({
       // Each owner starts with intrinsic dimensions, never the section's width.
       key={`${displayed.kind}:${displayed.id}`}
       target={displayed}
+      level={level}
       hidden={hidden}
       immediate={immediate || !!displayed.instant}
       exiting={exiting}
@@ -422,6 +493,7 @@ function ToolLayer({
 
 function FloatingTools({
   target,
+  level,
   counts,
   onDuplicate,
   onRemove,
@@ -432,55 +504,20 @@ function FloatingTools({
 }) {
   const ref = useRef(null),
     [position, setPosition] = useState(null);
-  const { handles } = useEditor();
+  const { handles, toolPanels, layoutTools } = useEditor();
   const isSection = target.kind === "section";
   useLayoutEffect(() => {
-    const update = () => {
-      if (!target.node.isConnected) return setPosition(null);
-      const r = target.node.getBoundingClientRect(),
-        p = ref.current?.getBoundingClientRect();
-      if (!p || r.bottom < TOP + 4 || r.top > innerHeight)
-        return setPosition(null);
-      let left, top;
-      if (isSection) {
-        left = r.left;
-        top = Math.max(TOP, r.top);
-        if (top + 40 > r.bottom) return setPosition(null);
-      } else if (target.kind === "link" || target.placement === "above") {
-        left = r.right - p.width - TOOL_INSET;
-        top = r.top - p.height - 7;
-        if (top < TOP + 6) top = r.bottom + 7;
-      } else {
-        left = r.right - p.width - TOOL_INSET;
-        top = Math.max(TOP + 6, r.top + TOOL_INSET);
-      }
-      left = Math.max(8, Math.min(left, innerWidth - p.width - 12));
-      top = Math.max(TOP + 4, Math.min(top, innerHeight - p.height - 8));
-      const next = {
-        left: isSection ? r.left : left,
-        top,
-        width: isSection ? r.width : undefined,
-      };
-      setPosition((previous) =>
-        previous?.left === next.left &&
-        previous?.top === next.top &&
-        previous?.width === next.width
-          ? previous
-          : next,
-      );
-    };
-    update();
-    window.addEventListener("scroll", update, true);
-    window.addEventListener("resize", update);
-    const observer = new ResizeObserver(update);
+    const entry = { target, panel: ref.current, level, setPosition };
+    toolPanels.current.set(level, entry);
+    layoutTools();
+    const observer = new ResizeObserver(layoutTools);
     observer.observe(target.node);
     if (ref.current) observer.observe(ref.current);
     return () => {
-      window.removeEventListener("scroll", update, true);
-      window.removeEventListener("resize", update);
+      toolPanels.current.delete(level);
       observer.disconnect();
     };
-  }, [target, isSection]);
+  }, [target, level, toolPanels, layoutTools]);
   useLayoutEffect(() => {
     if (!exiting) return;
     const panel = ref.current;
@@ -512,6 +549,7 @@ function FloatingTools({
       ref={ref}
       data-editor-toolbar={exiting ? undefined : "true"}
       data-toolbar-kind={target.kind}
+      data-toolbar-level={level}
       data-owner={target.id}
       data-positioned={position ? "true" : undefined}
       data-instant={immediate ? "true" : undefined}
