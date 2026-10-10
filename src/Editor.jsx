@@ -25,6 +25,8 @@ const EditorContext = createContext(null);
 export const useEditor = () => useContext(EditorContext);
 const TOP = 66;
 const TOOL_INSET = 8;
+const HOVER_DWELL = 150;
+const HOVER_CLOSE = 180;
 
 export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
   const [active, setActive] = useState(null),
@@ -34,6 +36,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
     editingRef = useRef(null),
     dragRef = useRef(null),
     hideTimer = useRef(null),
+    pendingHover = useRef(null),
     locked = useRef(false),
     lastPoint = useRef(null),
     handlePressed = useRef(false);
@@ -44,11 +47,19 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       old?.id === target?.id && old?.node === target?.node ? old : target,
     );
   }, []);
-  const clear = useCallback(() => {
+  const cancelPendingHover = useCallback(() => {
+    clearTimeout(pendingHover.current?.timer);
+    pendingHover.current = null;
+  }, []);
+  const cancelHoverTimers = useCallback(() => {
+    cancelPendingHover();
     clearTimeout(hideTimer.current);
     hideTimer.current = null;
+  }, [cancelPendingHover]);
+  const clear = useCallback(() => {
+    cancelHoverTimers();
     choose(null);
-  }, [choose]);
+  }, [choose, cancelHoverTimers]);
   const suppress = useCallback(() => {
     locked.current = true;
     clear();
@@ -65,12 +76,14 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
     editingRef.current = null;
     setEditing(null);
   }, []);
-  const startDrag = useCallback((id) => {
-    clearTimeout(hideTimer.current);
-    hideTimer.current = null;
-    dragRef.current = id;
-    setDragging(id);
-  }, []);
+  const startDrag = useCallback(
+    (id) => {
+      cancelHoverTimers();
+      dragRef.current = id;
+      setDragging(id);
+    },
+    [cancelHoverTimers],
+  );
   const stopDrag = useCallback(() => {
     handlePressed.current = false;
     dragRef.current = null;
@@ -102,8 +115,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
         return;
       const element = event.target instanceof Element ? event.target : null;
       if (element?.closest("[data-editor-toolbar]")) {
-        clearTimeout(hideTimer.current);
-        hideTimer.current = null;
+        cancelHoverTimers();
         return;
       }
       const source = element?.closest("[data-editor-target]");
@@ -127,8 +139,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
           event.clientY >= Math.max(TOP, owner.top, tools.top - TOOL_INSET) &&
           event.clientY <= Math.min(owner.bottom, tools.bottom)
         ) {
-          clearTimeout(hideTimer.current);
-          hideTimer.current = null;
+          cancelHoverTimers();
           return;
         }
       }
@@ -151,17 +162,17 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
           event.clientY >= top &&
           event.clientY <= bottom
         ) {
-          clearTimeout(hideTimer.current);
-          hideTimer.current = null;
+          cancelHoverTimers();
           return;
         }
       }
       if (!source) {
+        cancelPendingHover();
         if (!hideTimer.current)
           hideTimer.current = setTimeout(() => {
             hideTimer.current = null;
             choose(null);
-          }, 180);
+          }, HOVER_CLOSE);
         return;
       }
       clearTimeout(hideTimer.current);
@@ -171,7 +182,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
           ? source.closest(".canvas-link") || source
           : source;
       const section = source.closest("[data-section]");
-      choose({
+      const target = {
         node,
         id: source.dataset.editorTarget,
         kind: source.dataset.kind,
@@ -181,20 +192,50 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
         hasLink: source.dataset.link === "true",
         placement: source.dataset.toolPlacement,
         section: section?.dataset.section,
-      });
+      };
+      if (event.type === "focusin") {
+        cancelPendingHover();
+        choose(target);
+        return;
+      }
+      if (previous?.id === target.id && previous.node === node) {
+        cancelPendingHover();
+        return;
+      }
+      // Movement within one candidate must not restart its dwell time.
+      if (
+        pendingHover.current?.target.id === target.id &&
+        pendingHover.current.target.node === node
+      )
+        return;
+      cancelPendingHover();
+      const pending = { target, timer: null };
+      pendingHover.current = pending;
+      pending.timer = setTimeout(() => {
+        if (pendingHover.current !== pending) return;
+        pendingHover.current = null;
+        if (
+          !locked.current &&
+          !editingRef.current &&
+          !dragRef.current &&
+          !handlePressed.current &&
+          node.isConnected
+        )
+          choose(target);
+      }, HOVER_DWELL);
     }
     function leave() {
+      cancelHoverTimers();
       hideTimer.current = setTimeout(() => {
         hideTimer.current = null;
         choose(null);
-      }, 180);
+      }, HOVER_CLOSE);
     }
     function pointerDown(event) {
+      cancelHoverTimers();
       const handle = event.target.closest(".drag-handle");
       if (handle && handle.getAttribute("aria-disabled") !== "true") {
         handlePressed.current = true;
-        clearTimeout(hideTimer.current);
-        hideTimer.current = null;
       }
       if (editingRef.current && !event.target.closest("[contenteditable]"))
         document.activeElement?.blur();
@@ -203,22 +244,33 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       lastPoint.current = { x: event.clientX, y: event.clientY };
       handlePressed.current = false;
     }
+    function visibilityChange() {
+      if (document.hidden) clear();
+    }
     document.addEventListener("pointerup", releaseHandle, true);
     document.addEventListener("pointercancel", releaseHandle, true);
     document.addEventListener("pointermove", resolve);
     document.addEventListener("focusin", resolve);
     document.addEventListener("pointerdown", pointerDown, true);
     document.documentElement.addEventListener("pointerleave", leave);
+    window.addEventListener("scroll", cancelPendingHover, true);
+    window.addEventListener("resize", cancelPendingHover);
+    window.addEventListener("blur", clear);
+    document.addEventListener("visibilitychange", visibilityChange);
     return () => {
-      clearTimeout(hideTimer.current);
+      cancelHoverTimers();
       document.removeEventListener("pointerup", releaseHandle, true);
       document.removeEventListener("pointercancel", releaseHandle, true);
       document.removeEventListener("pointermove", resolve);
       document.removeEventListener("focusin", resolve);
       document.removeEventListener("pointerdown", pointerDown, true);
       document.documentElement.removeEventListener("pointerleave", leave);
+      window.removeEventListener("scroll", cancelPendingHover, true);
+      window.removeEventListener("resize", cancelPendingHover);
+      window.removeEventListener("blur", clear);
+      document.removeEventListener("visibilitychange", visibilityChange);
     };
-  }, [choose]);
+  }, [choose, clear, cancelPendingHover, cancelHoverTimers]);
   useEffect(() => {
     document.body.dataset.editorMode = dragging
       ? "dragging"

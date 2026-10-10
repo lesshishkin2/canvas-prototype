@@ -42,8 +42,9 @@ async function hover(el, scroll = true) {
   pointer(query(".editor-topbar"), "pointermove", 400, 20);
   if (scroll) {
     el.scrollIntoView({ block: "center" });
-    await wait();
   }
+  // Let a preceding explicit scroll finish before starting hover dwell.
+  await wait();
   const r = el.getBoundingClientRect();
   pointer(
     el,
@@ -51,7 +52,7 @@ async function hover(el, scroll = true) {
     r.x + Math.min(r.width / 2, 35),
     r.y + Math.min(r.height / 2, 40),
   );
-  await wait();
+  await wait(220);
 }
 async function edit(id, text) {
   const el = field(id);
@@ -132,11 +133,11 @@ export async function checkInsetToolbarBridge() {
   card.scrollIntoView({ block: "center" });
   await wait();
   const r = card.getBoundingClientRect();
-  const move = async (x, y) => {
+  const move = async (x, y, settle = true) => {
     const hit = document.elementFromPoint(x, y);
     assert(hit, "Pointer path left the viewport");
     pointer(hit, "pointermove", x, y);
-    await wait(25);
+    await wait(settle ? 220 : 25);
   };
   for (const direction of ["top", "right", "diagonal"]) {
     await move(r.left + r.width / 2, r.top + 80);
@@ -165,6 +166,7 @@ export async function checkInsetToolbarBridge() {
       await move(
         start.x + ((end.x - start.x) * step) / 12,
         start.y + ((end.y - start.y) * step) / 12,
+        false,
       );
       assert(
         toolbar()?.dataset.owner === "study-1",
@@ -179,7 +181,7 @@ export async function checkInsetToolbarBridge() {
     await move(p.left + 13, p.bottom + 4);
     assert(
       toolbar()?.dataset.owner === "study-1.image",
-      "Leaving the protected gap did not reveal the image immediately",
+      "Leaving the protected gap did not reveal the image after hover dwell",
     );
   }
   // Reach a real button through the narrow top gap, then exercise the action.
@@ -214,6 +216,149 @@ export async function checkInsetToolbarBridge() {
   await wait();
   assert(!toolbar(), "Focus could not enter text editing");
   field("study-1.title").blur();
+}
+
+export async function checkHoverDwell() {
+  const card = query('[data-item="study-1"]');
+  document.activeElement?.blur();
+  card.scrollIntoView({ block: "center" });
+  await wait(220);
+  const r = card.getBoundingClientRect();
+  const at = (x, y) => {
+    const hit = document.elementFromPoint(x, y);
+    assert(hit, "Hover test point is outside the viewport");
+    pointer(hit, "pointermove", x, y);
+  };
+  const imagePoint = () => at(r.left + r.width / 2, r.top + 80);
+  const cardPoint = () => at(r.left + 3, r.top + 3);
+  const center = (node) => {
+    const b = node.getBoundingClientRect();
+    at(b.left + b.width / 2, b.top + b.height / 2);
+  };
+  pointer(query(".editor-topbar"), "pointermove", 400, 20);
+  await wait(220);
+  imagePoint();
+  await wait(55);
+  assert(!toolbar(), "Initial tools appeared during a passing hover");
+  // Movement inside the same image must not keep postponing its tools.
+  for (let i = 0; i < 5; i++) {
+    at(r.left + r.width / 2 + i * 2, r.top + 80);
+    await wait(35);
+  }
+  assert(
+    toolbar()?.dataset.owner === "study-1.image",
+    "Movement within one target restarted the dwell timer",
+  );
+  for (const move of [
+    cardPoint,
+    () => at(r.left - 12, r.top + 80),
+    () => center(field("study-1.title")),
+    () => center(field("study-1.cta")),
+    imagePoint,
+  ]) {
+    move();
+    await wait(35);
+    assert(
+      toolbar()?.dataset.owner === "study-1.image",
+      "A fast sweep flashed intermediate tools",
+    );
+  }
+  await wait(190);
+  assert(
+    toolbar()?.dataset.owner === "study-1.image",
+    "Returning to the current target did not cancel a pending switch",
+  );
+  cardPoint();
+  await wait(55);
+  assert(
+    toolbar()?.dataset.owner === "study-1.image",
+    "Old tools disappeared before the new target settled",
+  );
+  await wait(140);
+  assert(
+    toolbar()?.dataset.owner === "study-1",
+    "Settled card hover did not switch tools",
+  );
+  imagePoint();
+  await wait(55);
+  const p = toolbar().getBoundingClientRect();
+  at(p.left + 13, p.top - 1);
+  await wait(200);
+  assert(
+    toolbar()?.dataset.owner === "study-1",
+    "Protective gap did not cancel the queued image toolbar",
+  );
+  imagePoint();
+  await wait(55);
+  at(p.left + 13, p.top + 13);
+  await wait(200);
+  assert(
+    toolbar()?.dataset.owner === "study-1",
+    "Entering the actual toolbar did not cancel a queued switch",
+  );
+
+  imagePoint();
+  await wait(55);
+  card.focus();
+  await wait(20);
+  assert(toolbar()?.dataset.owner === "study-1", "Keyboard focus was delayed");
+  await wait(190);
+  assert(
+    toolbar()?.dataset.owner === "study-1",
+    "A stale hover overrode keyboard focus",
+  );
+  card.blur();
+  imagePoint();
+  await wait(55);
+  field("study-1.title").focus();
+  await wait(20);
+  assert(!toolbar(), "Text editing did not hide tools immediately");
+  await wait(190);
+  assert(!toolbar(), "Pending tools appeared during editing");
+  field("study-1.title").blur();
+  imagePoint();
+  await wait(55);
+  window.dispatchEvent(new Event("scroll"));
+  await wait(190);
+  assert(!toolbar(), "Pending tools survived scrolling");
+  imagePoint();
+  await wait(55);
+  document.documentElement.dispatchEvent(new PointerEvent("pointerleave"));
+  await wait(220);
+  assert(!toolbar(), "Pending tools appeared after leaving the window");
+
+  await hover(card);
+  imagePoint();
+  await wait(55);
+  const handle = query(".drag-handle"),
+    h = handle.getBoundingClientRect();
+  pointer(handle, "pointerdown", h.x + 10, h.y + 13, 1);
+  pointer(document, "pointermove", h.x + 20, h.y + 13, 1);
+  await wait(220);
+  assert(
+    document.body.dataset.editorMode === "dragging" &&
+      toolbar()?.style.visibility === "hidden",
+    "Pending hover interfered with dragging",
+  );
+  document.dispatchEvent(
+    new KeyboardEvent("keydown", {
+      key: "Escape",
+      code: "Escape",
+      bubbles: true,
+    }),
+  );
+  await wait(220);
+  assert(!toolbar(), "Pending tools reappeared after drag cancellation");
+
+  await hover(card);
+  imagePoint();
+  await wait(55);
+  await action("Копировать элемент");
+  await wait(190);
+  assert(!toolbar(), "Pending tools reappeared after a structural action");
+  const copy = order("studies")[order("studies").indexOf("study-1") + 1];
+  await hover(query(`[data-item="${copy}"]`));
+  await action("Удалить элемент");
 }
 
 export async function runChecks() {
@@ -677,6 +822,10 @@ export async function runChecks() {
   await test(
     "Slow top, side and diagonal paths retain the active card toolbar",
     checkInsetToolbarBridge,
+  );
+  await test(
+    "Hover dwell filters fast sweeps and cancels stale candidates",
+    checkHoverDwell,
   );
   await test("Inline-image group copies independently, sorts, cancels and protects its last item", async () => {
     const foreign = order("works").join();
