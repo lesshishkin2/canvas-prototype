@@ -96,7 +96,7 @@ export async function runEdgeCaseChecks() {
         );
         if (id === "edge-wide.image")
           assert(
-            Math.abs(p.top - a.top - 8) < 1,
+            Math.abs(p.top + p.height / 2 - (a.top + a.height / 2)) < 1,
             "Wide image shifts without a collision",
           );
         else

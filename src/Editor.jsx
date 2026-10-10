@@ -221,10 +221,12 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
             return;
           }
         }
-        // A short bridge lets the pointer cross the gap above/below a link.
+        // Keep access when a link or a collision-shifted image panel sits outside its owner.
         if (
           event.type === "pointermove" &&
-          (ownerTarget.kind === "link" || ownerTarget.placement === "above") &&
+          (ownerTarget.kind === "link" ||
+            ownerTarget.kind === "image" ||
+            ownerTarget.placement === "above") &&
           (!source || source.contains(ownerTarget.node))
         ) {
           const a = ownerTarget.node.getBoundingClientRect(),

@@ -505,7 +505,7 @@ svg {
   pointer-events: none;
 }
 .edge-narrow .edge-image img {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 5 / 2;
 }
 .edge-copy {
   padding: 26px 24px 32px;

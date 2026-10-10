@@ -83,6 +83,7 @@ export async function runHierarchicalToolsChecks() {
     card().scrollIntoView({ block: "center" });
     await wait(120);
     const anchor = card().getBoundingClientRect();
+    const imageAnchor = card().querySelector("figure").getBoundingClientRect();
     assert(
       card().querySelector("figure").getBoundingClientRect().top === anchor.top,
       "Zero-padding scenario not applied",
@@ -98,10 +99,12 @@ export async function runHierarchicalToolsChecks() {
         const p = tool("study-1").getBoundingClientRect(),
           c = child.getBoundingClientRect();
         assert(
-          Math.abs(c.top - p.top) < 1 &&
+          Math.abs(
+            c.top + c.height / 2 - (imageAnchor.top + imageAnchor.height / 2),
+          ) < 1 &&
             Math.abs(c.left + c.width / 2 - (anchor.left + anchor.width / 2)) <
               1,
-          "First visible frame is not centered alongside parent tools at zero padding",
+          "First visible frame is not centered on both image axes at zero padding",
         );
         firstFrame ||= {
           parentTop: p.top,
@@ -230,8 +233,14 @@ export async function runHierarchicalToolsChecks() {
     );
     assert(
       Math.abs(rects[1].top - rects[0].bottom - 6) < 1 &&
-        Math.abs(rects[2].top - rects[1].top) < 1,
-      "Centered image and item tools did not share the row below the section on scroll",
+        Math.abs(
+          rects[2].top +
+            rects[2].height / 2 -
+            (card().querySelector("figure").getBoundingClientRect().top +
+              card().querySelector("figure").getBoundingClientRect().height /
+                2),
+        ) < 1,
+      "Image tools lost vertical centering on scroll",
     );
     checks.push({
       name: "Scroll recomputes a three-level stack below the fixed topbar",

@@ -51,8 +51,8 @@ function checkPosition(tools, owner) {
       "Image tools are not centered from their first visible frame",
     );
     assert(
-      Math.abs(p.top - (r.top + 8)) < 1,
-      "Wide image tools moved without a collision",
+      Math.abs(p.top + p.height / 2 - (r.top + r.height / 2)) < 1,
+      "Image tools are not vertically centered",
     );
   } else {
     assert(

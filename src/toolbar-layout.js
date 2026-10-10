@@ -25,6 +25,8 @@ export function placeToolbar(target, anchor, size, viewport, ancestors = []) {
   } else if (target.kind === "link" || target.placement === "above") {
     top = anchor.top - size.height - 7;
     if (top < TOP + 6) top = anchor.bottom + 7;
+  } else if (target.kind === "image") {
+    top = anchor.top + (anchor.height - size.height) / 2;
   } else top = Math.max(TOP + 6, anchor.top + TOOL_INSET);
   if (!section) left = Math.max(8, Math.min(left, viewport.width - width - 12));
   top = Math.max(TOP + 4, Math.min(top, viewport.height - size.height - 8));
