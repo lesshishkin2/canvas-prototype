@@ -319,8 +319,15 @@ export async function checkHoverDwell() {
   imagePoint();
   await wait(55);
   window.dispatchEvent(new Event("scroll"));
-  await wait(190);
-  assert(!toolbar(), "Pending tools survived scrolling");
+  await wait(80);
+  assert(!toolbar(), "Scrolling did not restart hover dwell");
+  await wait(200);
+  assert(
+    toolbar()?.dataset.owner === "study-1.image",
+    "Stationary hover did not settle after scrolling",
+  );
+  pointer(query(".editor-topbar"), "pointermove", 400, 20);
+  await wait(350);
   imagePoint();
   await wait(55);
   document.documentElement.dispatchEvent(new PointerEvent("pointerleave"));

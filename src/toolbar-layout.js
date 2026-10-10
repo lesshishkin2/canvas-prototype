@@ -61,5 +61,8 @@ export function placeToolbar(target, anchor, size, viewport, ancestors = []) {
     }
     if (left < 8) return null;
   }
+  // A clipped card must not pin its actions below its own bottom edge.
+  if (target.kind === "item" && !above && top + size.height > anchor.bottom)
+    return null;
   return { ...rect(), sectionWidth: section ? width : undefined };
 }

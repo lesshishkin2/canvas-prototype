@@ -103,14 +103,6 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       if (rect) placed.push({ target, rect });
     }
   }, []);
-  useLayoutEffect(() => {
-    window.addEventListener("scroll", layoutTools, true);
-    window.addEventListener("resize", layoutTools);
-    return () => {
-      window.removeEventListener("scroll", layoutTools, true);
-      window.removeEventListener("resize", layoutTools);
-    };
-  }, [layoutTools]);
   const choose = useCallback((target, immediate = false) => {
     activeRef.current = target;
     setImmediateExit(immediate);
@@ -166,6 +158,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
     suppress();
   }, [suppress]);
   useEffect(() => {
+    let viewportFrame = null;
     function resolve(event) {
       if (event.type === "pointermove") {
         if (event.buttons === 0 && !dragRef.current)
@@ -180,7 +173,11 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
         lastPoint.current = point;
         if (locked.current && !moved) return;
         if (moved) locked.current = false;
-      } else if (event.type === "focusin") locked.current = false;
+      } else if (event.type === "focusin") {
+        locked.current = false;
+        // Keyboard focus owns its tools until the pointer moves again.
+        lastPoint.current = null;
+      }
       if (
         locked.current ||
         editingRef.current ||
@@ -189,12 +186,29 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       )
         return;
       const element = event.target instanceof Element ? event.target : null;
-      if (element?.closest("[data-editor-toolbar]")) {
+      if (
+        event.type !== "viewportchange" &&
+        element?.closest("[data-editor-toolbar]")
+      ) {
         cancelHoverTimers();
         return;
       }
       const source = element?.closest("[data-editor-target]");
-      const previous = activeRef.current;
+      let previous = activeRef.current;
+      if (event.type === "viewportchange" && previous) {
+        // Scrolling changes the target even when the pointer has not moved.
+        // Keep only shared ancestors; obsolete tools must not float over new content.
+        const shared = source
+          ? [previous, ...toolTargets(previous).reverse()].find((target) =>
+              target?.node.contains(source),
+            )
+          : null;
+        if (shared?.id !== previous.id) {
+          cancelHoverTimers();
+          choose(shared || null, true);
+          previous = shared || null;
+        }
+      }
       const panels = [...toolPanels.current.values()].filter(
         ({ panel }) =>
           panel.dataset.exiting !== "true" &&
@@ -303,7 +317,29 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
           choose(target);
       }, HOVER_DWELL);
     }
+    function viewportChanged() {
+      cancelPendingHover();
+      if (viewportFrame !== null) return;
+      viewportFrame = requestAnimationFrame(() => {
+        viewportFrame = null;
+        const point = lastPoint.current;
+        if (point) {
+          // Portal tools can otherwise keep themselves hovered over a departed owner.
+          const element = document
+            .elementsFromPoint(point.x, point.y)
+            .find((node) => !node.closest(".floating-tools"));
+          resolve({
+            type: "viewportchange",
+            target: element,
+            clientX: point.x,
+            clientY: point.y,
+          });
+        }
+        layoutTools();
+      });
+    }
     function leave() {
+      lastPoint.current = null;
       cancelHoverTimers();
       hideTimer.current = setTimeout(() => {
         hideTimer.current = null;
@@ -324,7 +360,11 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       handlePressed.current = false;
     }
     function visibilityChange() {
-      if (document.hidden) clear();
+      if (document.hidden) windowBlur();
+    }
+    function windowBlur() {
+      lastPoint.current = null;
+      clear();
     }
     document.addEventListener("pointerup", releaseHandle, true);
     document.addEventListener("pointercancel", releaseHandle, true);
@@ -332,24 +372,25 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
     document.addEventListener("focusin", resolve);
     document.addEventListener("pointerdown", pointerDown, true);
     document.documentElement.addEventListener("pointerleave", leave);
-    window.addEventListener("scroll", cancelPendingHover, true);
-    window.addEventListener("resize", cancelPendingHover);
-    window.addEventListener("blur", clear);
+    window.addEventListener("scroll", viewportChanged, true);
+    window.addEventListener("resize", viewportChanged);
+    window.addEventListener("blur", windowBlur);
     document.addEventListener("visibilitychange", visibilityChange);
     return () => {
       cancelHoverTimers();
+      cancelAnimationFrame(viewportFrame);
       document.removeEventListener("pointerup", releaseHandle, true);
       document.removeEventListener("pointercancel", releaseHandle, true);
       document.removeEventListener("pointermove", resolve);
       document.removeEventListener("focusin", resolve);
       document.removeEventListener("pointerdown", pointerDown, true);
       document.documentElement.removeEventListener("pointerleave", leave);
-      window.removeEventListener("scroll", cancelPendingHover, true);
-      window.removeEventListener("resize", cancelPendingHover);
-      window.removeEventListener("blur", clear);
+      window.removeEventListener("scroll", viewportChanged, true);
+      window.removeEventListener("resize", viewportChanged);
+      window.removeEventListener("blur", windowBlur);
       document.removeEventListener("visibilitychange", visibilityChange);
     };
-  }, [choose, clear, cancelPendingHover, cancelHoverTimers]);
+  }, [choose, clear, cancelPendingHover, cancelHoverTimers, layoutTools]);
   useEffect(() => {
     document.body.dataset.editorMode = dragging
       ? "dragging"

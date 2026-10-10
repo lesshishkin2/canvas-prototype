@@ -145,6 +145,8 @@ export async function runEdgeCaseChecks() {
   // The section becomes a third obstacle while scrolled under the topbar.
   hover("edge-narrow.image");
   await wait();
+  // Pin ownership with keyboard focus while this case tests layout during scroll.
+  target("edge-narrow.image").focus();
   window.scrollBy(0, target("edge-narrow").getBoundingClientRect().top - 74);
   await wait(160);
   noOverlap();

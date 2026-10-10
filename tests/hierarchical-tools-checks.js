@@ -225,6 +225,7 @@ export async function runHierarchicalToolsChecks() {
 
     imagePoint();
     await wait();
+    card().querySelector("figure").focus();
     window.scrollBy(0, card().getBoundingClientRect().top - 74);
     await wait(150);
     noOverlaps();

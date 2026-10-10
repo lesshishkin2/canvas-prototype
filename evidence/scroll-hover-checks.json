@@ -1,0 +1,232 @@
+{
+  "date": "2026-10-11",
+  "reproduction": {
+    "before": [
+      "studies",
+      "study-1",
+      "study-1.image"
+    ],
+    "underStationaryPointerAfterScroll": "edges",
+    "staleOwnersBeforeFix": [
+      "studies",
+      "study-1"
+    ],
+    "ownersAfterFix": [
+      "edges"
+    ]
+  },
+  "scrollChecks": [
+    {
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "results": [
+        "Small scroll preserves the same image and parent panels",
+        "Image tools disappear immediately over text; parent remains stable",
+        "Leaving a card for section whitespace clears its actions without pointer movement",
+        "Stationary pointer selects the next grid row after dwell",
+        "Scrolling from a toolbar does not let the portal retain its departed owner",
+        "Keyboard ownership survives scroll; clipped card actions stay hidden",
+        "Editing remains focused without scroll hover tools",
+        "Window exit invalidates the stored pointer position",
+        "Structural action suppression remains until new pointer movement"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "results": [
+        "Small scroll preserves the same image and parent panels",
+        "Image tools disappear immediately over text; parent remains stable",
+        "Leaving a card for section whitespace clears its actions without pointer movement",
+        "Stationary pointer selects the next grid row after dwell",
+        "Scrolling from a toolbar does not let the portal retain its departed owner",
+        "Keyboard ownership survives scroll; clipped card actions stay hidden",
+        "Editing remains focused without scroll hover tools",
+        "Window exit invalidates the stored pointer position",
+        "Structural action suppression remains until new pointer movement"
+      ]
+    },
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "results": [
+        "Small scroll preserves the same image and parent panels",
+        "Image tools disappear immediately over text; parent remains stable",
+        "Leaving a card for section whitespace clears its actions without pointer movement",
+        "Stationary pointer selects the next grid row after dwell",
+        "Scrolling from a toolbar does not let the portal retain its departed owner",
+        "Keyboard ownership survives scroll; clipped card actions stay hidden",
+        "Editing remains focused without scroll hover tools",
+        "Window exit invalidates the stored pointer position",
+        "Structural action suppression remains until new pointer movement"
+      ]
+    }
+  ],
+  "regression": {
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "results": [
+      {
+        "name": "Local assets, eight sections, no horizontal overflow",
+        "result": "passed"
+      },
+      {
+        "name": "Menu is first; label hover exposes all item actions",
+        "result": "passed"
+      },
+      {
+        "name": "Menu copies independently and reorders horizontally with cancellation",
+        "result": "passed"
+      },
+      {
+        "name": "Menu wraps and sorts across rows; final item cannot be deleted",
+        "result": "passed"
+      },
+      {
+        "name": "Ordered card actions and closest target hover",
+        "result": "passed"
+      },
+      {
+        "name": "Safe bridge, toolbar interaction, and 180ms closing delay",
+        "result": "passed"
+      },
+      {
+        "name": "Native text editing retains caret and Enter/Escape behavior",
+        "result": "passed"
+      },
+      {
+        "name": "Empty content is still editable; rich input becomes plain text",
+        "result": "passed"
+      },
+      {
+        "name": "Button input commits on Enter and never navigates",
+        "result": "passed"
+      },
+      {
+        "name": "Copy latest content next to original; new copy edits independently",
+        "result": "passed"
+      },
+      {
+        "name": "Drag threshold and grid reorder in both directions across rows",
+        "result": "passed"
+      },
+      {
+        "name": "Immediate pointer release still resolves a directly hit sibling",
+        "result": "passed"
+      },
+      {
+        "name": "Escape, outside drop, and foreign container cancel reorder",
+        "result": "passed"
+      },
+      {
+        "name": "Separate image actions and link placement below the topbar",
+        "result": "passed"
+      },
+      {
+        "name": "Keyboard focus reveals item tools without editing text",
+        "result": "passed"
+      },
+      {
+        "name": "Exhibition reorder, last-item protection, and disabled handle",
+        "result": "passed"
+      },
+      {
+        "name": "Inline images and their repeatable parents have separate tools",
+        "result": "passed"
+      },
+      {
+        "name": "Slow top, side and diagonal paths retain the active card toolbar",
+        "result": "passed"
+      },
+      {
+        "name": "Hover dwell filters fast sweeps and cancels stale candidates",
+        "result": "passed"
+      },
+      {
+        "name": "Inline-image group copies independently, sorts, cancels and protects its last item",
+        "result": "passed"
+      },
+      {
+        "name": "Long text expands without horizontal overflow",
+        "result": "passed"
+      }
+    ],
+    "passed": 21,
+    "total": 21
+  },
+  "compatibility": {
+    "edges": [
+      {
+        "id": "edge-wide.image",
+        "result": "passed"
+      },
+      {
+        "id": "edge-narrow.image",
+        "result": "passed"
+      },
+      {
+        "id": "edge-link.cta",
+        "result": "passed"
+      },
+      {
+        "id": "displaced-link-access",
+        "result": "passed"
+      },
+      {
+        "id": "image-and-link-under-topbar",
+        "result": "passed"
+      },
+      {
+        "id": "independent-copy-and-delete",
+        "result": "passed"
+      },
+      {
+        "id": "mixed-width-sort",
+        "result": "passed"
+      }
+    ],
+    "hierarchy": [
+      {
+        "name": "Zero padding: first visible frame has three accessible levels",
+        "result": "passed"
+      },
+      {
+        "name": "Parent identity, position and opacity survive image/text/button transitions",
+        "result": "passed"
+      },
+      {
+        "name": "Crossing the stack, copying and deleting from parent tools while hovering an image",
+        "result": "passed"
+      },
+      {
+        "name": "Parent drag handle works over the image and hides all levels",
+        "result": "passed"
+      },
+      {
+        "name": "Scroll recomputes a three-level stack below the fixed topbar",
+        "result": "passed"
+      },
+      {
+        "name": "Sibling hover updates ownership without duplicate parent panels",
+        "result": "passed"
+      },
+      {
+        "name": "Editing immediately removes every panel",
+        "result": "passed"
+      }
+    ],
+    "motionTransitions": 8,
+    "interruptedExit": "passed",
+    "keyboardAndEditing": "passed"
+  },
+  "build": "passed",
+  "console": "No errors or warnings"
+}
