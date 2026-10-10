@@ -8,9 +8,11 @@ const order = (list) =>
     (el) => el.dataset.item,
   );
 const field = (id) => query(`[data-field="${id}"]`);
-const toolbar = () => query(".floating-tools");
+const toolbar = () => query('.floating-tools:not([data-exiting="true"])');
 const labels = () =>
-  all(".floating-tools button").map((el) => el.getAttribute("aria-label"));
+  [...(toolbar()?.querySelectorAll("button") || [])].map((el) =>
+    el.getAttribute("aria-label"),
+  );
 const assert = (condition, message) => {
   if (!condition) throw Error(message);
 };
@@ -68,7 +70,7 @@ async function edit(id, text) {
   await wait();
 }
 async function action(label) {
-  const button = all(".floating-tools button").find(
+  const button = [...(toolbar()?.querySelectorAll("button") || [])].find(
     (el) => el.getAttribute("aria-label") === label,
   );
   assert(button, `Missing action ${label}`);

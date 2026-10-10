@@ -751,6 +751,8 @@ svg {
   outline-offset: 0;
 }
 .floating-tools {
+  --tools-fade-duration: 125ms;
+  --tools-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   position: fixed;
   z-index: 800;
   display: flex;
@@ -761,6 +763,27 @@ svg {
   color: #eee;
   filter: drop-shadow(0 2px 4px #0003);
   user-select: none;
+  opacity: 0;
+}
+.floating-tools[data-positioned="true"] {
+  opacity: 1;
+}
+@media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
+  .floating-tools[data-positioned="true"] {
+    transition: opacity var(--tools-fade-duration) var(--tools-ease-out);
+  }
+  @starting-style {
+    .floating-tools[data-positioned="true"]:not([data-instant="true"]) {
+      opacity: 0;
+    }
+  }
+}
+.floating-tools[data-exiting="true"] {
+  opacity: 0;
+  pointer-events: none;
+}
+.floating-tools[data-instant="true"] {
+  transition: none;
 }
 .tool-group {
   display: flex;

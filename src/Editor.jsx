@@ -30,6 +30,7 @@ const HOVER_CLOSE = 180;
 
 export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
   const [active, setActive] = useState(null),
+    [immediateExit, setImmediateExit] = useState(false),
     [editing, setEditing] = useState(null),
     [dragging, setDragging] = useState(null);
   const activeRef = useRef(null),
@@ -41,10 +42,15 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
     lastPoint = useRef(null),
     handlePressed = useRef(false);
   const handles = useRef(new Map());
-  const choose = useCallback((target) => {
+  const choose = useCallback((target, immediate = false) => {
     activeRef.current = target;
+    setImmediateExit(immediate);
     setActive((old) =>
-      old?.id === target?.id && old?.node === target?.node ? old : target,
+      old?.id === target?.id &&
+      old?.node === target?.node &&
+      old?.instant === target?.instant
+        ? old
+        : target,
     );
   }, []);
   const cancelPendingHover = useCallback(() => {
@@ -58,7 +64,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
   }, [cancelPendingHover]);
   const clear = useCallback(() => {
     cancelHoverTimers();
-    choose(null);
+    choose(null, true);
   }, [choose, cancelHoverTimers]);
   const suppress = useCallback(() => {
     locked.current = true;
@@ -120,7 +126,9 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       }
       const source = element?.closest("[data-editor-target]");
       const previous = activeRef.current;
-      const panel = document.querySelector(".floating-tools");
+      const panel = document.querySelector(
+        '.floating-tools:not([data-exiting="true"])',
+      );
       // Join an inset panel to its owner's top/right edges. This only retains
       // an already open panel; nested targets elsewhere still resolve normally.
       if (
@@ -192,8 +200,19 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
         hasLink: source.dataset.link === "true",
         placement: source.dataset.toolPlacement,
         section: section?.dataset.section,
+        instant: event.type === "focusin",
       };
       if (event.type === "focusin") {
+        cancelPendingHover();
+        choose(target);
+        return;
+      }
+      // Returning during fade-out reverses the same panel instead of waiting
+      // through another dwell and restarting its entrance from zero.
+      if (
+        document.querySelector('.floating-tools[data-exiting="true"]')?.dataset
+          .owner === target.id
+      ) {
         cancelPendingHover();
         choose(target);
         return;
@@ -310,21 +329,22 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
   return (
     <EditorContext.Provider value={context}>
       {children}
-      {active && !editing && (
-        <FloatingTools
-          hidden={!!dragging}
-          target={active}
-          counts={counts}
-          onDuplicate={() => {
-            onDuplicate(active.list, active.item);
-            suppress();
-          }}
-          onRemove={() => {
-            onRemove(active.list, active.item);
-            suppress();
-          }}
-        />
-      )}
+      <ToolLayer
+        target={editing ? null : active}
+        hidden={!!dragging}
+        immediate={
+          immediateExit || !!editing || !!dragging || !!active?.instant
+        }
+        counts={counts}
+        onDuplicate={(list, id) => {
+          onDuplicate(list, id);
+          suppress();
+        }}
+        onRemove={(list, id) => {
+          onRemove(list, id);
+          suppress();
+        }}
+      />
     </EditorContext.Provider>
   );
 }
@@ -360,7 +380,56 @@ export function ToolButton({
   );
 }
 
-function FloatingTools({ target, counts, onDuplicate, onRemove, hidden }) {
+function ToolLayer({
+  target,
+  hidden,
+  immediate,
+  counts,
+  onDuplicate,
+  onRemove,
+}) {
+  const requested = target?.kind === "text" ? null : target;
+  const [retained, setRetained] = useState(requested);
+  useLayoutEffect(() => {
+    if (requested) setRetained(requested);
+    else if (immediate) setRetained(null);
+  }, [requested, immediate]);
+  const displayed = requested || (!immediate ? retained : null);
+  const exiting = !!displayed && !requested;
+  const finishExit = useCallback(() => {
+    setRetained((previous) => (previous === displayed ? null : previous));
+  }, [displayed]);
+  if (!displayed) return null;
+  return (
+    <FloatingTools
+      // Each owner starts with intrinsic dimensions, never the section's width.
+      key={`${displayed.kind}:${displayed.id}`}
+      target={displayed}
+      hidden={hidden}
+      immediate={immediate || !!displayed.instant}
+      exiting={exiting}
+      onExitComplete={finishExit}
+      counts={counts}
+      onDuplicate={() =>
+        !exiting && !hidden && onDuplicate(displayed.list, displayed.item)
+      }
+      onRemove={() =>
+        !exiting && !hidden && onRemove(displayed.list, displayed.item)
+      }
+    />
+  );
+}
+
+function FloatingTools({
+  target,
+  counts,
+  onDuplicate,
+  onRemove,
+  hidden,
+  immediate,
+  exiting,
+  onExitComplete,
+}) {
   const ref = useRef(null),
     [position, setPosition] = useState(null);
   const { handles } = useEditor();
@@ -387,24 +456,45 @@ function FloatingTools({ target, counts, onDuplicate, onRemove, hidden }) {
       }
       left = Math.max(8, Math.min(left, innerWidth - p.width - 12));
       top = Math.max(TOP + 4, Math.min(top, innerHeight - p.height - 8));
-      setPosition({
+      const next = {
         left: isSection ? r.left : left,
         top,
         width: isSection ? r.width : undefined,
-      });
+      };
+      setPosition((previous) =>
+        previous?.left === next.left &&
+        previous?.top === next.top &&
+        previous?.width === next.width
+          ? previous
+          : next,
+      );
     };
     update();
     window.addEventListener("scroll", update, true);
     window.addEventListener("resize", update);
     const observer = new ResizeObserver(update);
     observer.observe(target.node);
+    if (ref.current) observer.observe(ref.current);
     return () => {
       window.removeEventListener("scroll", update, true);
       window.removeEventListener("resize", update);
       observer.disconnect();
     };
   }, [target, isSection]);
-  if (target.kind === "text") return null;
+  useLayoutEffect(() => {
+    if (!exiting) return;
+    const panel = ref.current;
+    const duration = panel
+      ? parseFloat(getComputedStyle(panel).transitionDuration) * 1000
+      : 0;
+    if (immediate || !position || !duration) {
+      onExitComplete();
+      return;
+    }
+    // transitionend normally removes it; the timeout also covers cancellation.
+    const timeout = setTimeout(onExitComplete, duration + 32);
+    return () => clearTimeout(timeout);
+  }, [exiting, immediate, !!position, onExitComplete]);
   const single = counts[target.list] === 1;
   const h = handles.current.get(target.item);
   const imgTools = (
@@ -420,14 +510,27 @@ function FloatingTools({ target, counts, onDuplicate, onRemove, hidden }) {
   return createPortal(
     <div
       ref={ref}
-      data-editor-toolbar="true"
+      data-editor-toolbar={exiting ? undefined : "true"}
       data-toolbar-kind={target.kind}
       data-owner={target.id}
+      data-positioned={position ? "true" : undefined}
+      data-instant={immediate ? "true" : undefined}
+      data-exiting={exiting ? "true" : undefined}
+      inert={exiting || hidden || !position}
+      aria-hidden={exiting || hidden || !position ? true : undefined}
       className={`floating-tools ${isSection ? "section-tools" : ""}`}
       style={{
         ...position,
         visibility: position && !hidden ? "visible" : "hidden",
-        pointerEvents: hidden ? "none" : undefined,
+        pointerEvents: hidden || exiting || !position ? "none" : undefined,
+      }}
+      onTransitionEnd={(event) => {
+        if (
+          exiting &&
+          event.target === ref.current &&
+          event.propertyName === "opacity"
+        )
+          onExitComplete();
       }}
       role="toolbar"
       aria-label={
