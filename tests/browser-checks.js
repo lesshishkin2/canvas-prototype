@@ -145,9 +145,9 @@ export async function runChecks() {
       document.activeElement?.blur();
     }
   }
-  await test("Local assets, six sections, no horizontal overflow", async () => {
+  await test("Local assets, seven sections, no horizontal overflow", async () => {
     await document.fonts.ready;
-    assert(all("[data-section]").length === 6, "Incorrect section count");
+    assert(all("[data-section]").length === 7, "Incorrect section count");
     assert(
       document.documentElement.scrollWidth <= innerWidth,
       "Horizontal overflow",
@@ -538,6 +538,103 @@ export async function runChecks() {
     disabled.forEach((button) => button.click());
     await wait();
     assert(order("exhibitions").length === 1, "Last item removed");
+  });
+  await test("Inline images and their repeatable parents have separate tools", async () => {
+    const card = query('[data-item="study-1"]'),
+      visual = card.querySelector(".study-image"),
+      img = visual.querySelector("img"),
+      href = location.href;
+    assert(
+      getComputedStyle(img).position === "static" &&
+        getComputedStyle(card).backgroundImage === "none" &&
+        visual.getBoundingClientRect().bottom <=
+          field("study-1.title").getBoundingClientRect().top,
+      "Image is not a separate element in the document flow",
+    );
+    await hover(card);
+    assert(
+      toolbar()?.dataset.owner === "study-1" &&
+        labels().join("|") ===
+          "Копировать элемент|Удалить элемент|Перетащить элемент",
+      "Parent should only have duplicate, delete and drag",
+    );
+    await hover(visual);
+    assert(
+      toolbar()?.dataset.owner === "study-1.image" &&
+        labels().join("|") ===
+          "Заменить изображение · демо|Редактировать изображение · демо",
+      "Nested image should own only the two image actions",
+    );
+    const before = img.src;
+    await action("Заменить изображение · демо");
+    await action("Редактировать изображение · демо");
+    assert(
+      img.src === before && location.href === href && !query(".drag-preview"),
+      "Image demos changed data or started dragging",
+    );
+    await hover(field("study-1.title"));
+    assert(!toolbar(), "Text hover left a parent/image panel visible");
+    visual.focus();
+    await wait();
+    assert(
+      toolbar()?.dataset.owner === "study-1.image",
+      "Keyboard image focus has no tools",
+    );
+    visual.blur();
+    await edit("study-1.title", "Новый взгляд на цвет");
+    await hover(card);
+    assert(labels().length === 3, "Parent panel did not return after editing");
+  });
+  await test("Inline-image group copies independently, sorts, cancels and protects its last item", async () => {
+    const foreign = order("works").join();
+    await hover(query('[data-item="study-1"]'));
+    await action("Копировать элемент");
+    const copy = order("studies")[1];
+    assert(
+      copy !== "study-1" &&
+        field(`${copy}.title`).innerText === "Новый взгляд на цвет",
+      "Latest text was not copied next to original",
+    );
+    const image = query(`[data-editor-target="${copy}.image"] img`);
+    assert(
+      image?.src === query('[data-editor-target="study-1.image"] img').src,
+      "Image missing from copy",
+    );
+    await edit(`${copy}.title`, "Независимая копия");
+    assert(
+      field("study-1.title").innerText === "Новый взгляд на цвет",
+      "Copy shares text state",
+    );
+    const before = order("studies"),
+      indicated = await drag("studies", "study-1", "study-3");
+    assert(
+      indicated &&
+        order("studies").indexOf("study-1") === before.indexOf(indicated) &&
+        order("studies")[0] !== "study-1",
+      "Image group did not reorder between rows",
+    );
+    const reordered = order("studies").join();
+    await drag("studies", "study-1", "study-2", { cancel: true });
+    await drag("studies", "study-1", "study-2", { outside: true });
+    await drag("studies", "study-1", "work-1");
+    assert(
+      order("studies").join() === reordered &&
+        order("works").join() === foreign,
+      "Cancelled or foreign drop changed a list",
+    );
+    while (order("studies").length > 1) {
+      await hover(query(`[data-item="${order("studies")[0]}"]`));
+      await action("Удалить элемент");
+      assert(!toolbar(), "Deleted item left a toolbar visible");
+    }
+    await hover(query(`[data-item="${order("studies")[0]}"]`));
+    assert(
+      labels().includes("Последний элемент нельзя удалить") &&
+        all('.floating-tools [aria-disabled="true"]').length === 2,
+      "Last inline-image item lacks delete/drag guards",
+    );
+    await action("Последний элемент нельзя удалить");
+    assert(order("studies").length === 1, "Last inline-image item was deleted");
   });
   await test("Long text expands without horizontal overflow", async () => {
     await edit("work-2.title", "Очень длинный заголовок ".repeat(12));

@@ -317,7 +317,8 @@ svg {
   background: var(--paper);
   color: var(--ink);
 }
-.artwork-grid {
+.artwork-grid,
+.study-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
@@ -396,6 +397,61 @@ svg {
   width: 15px;
   height: 15px;
 }
+.studies {
+  background: #e7e6dc;
+  color: var(--ink);
+}
+.study-card {
+  position: relative;
+  min-width: 0;
+  padding: 44px 20px 30px;
+  background: #f7f6ef;
+  color: var(--ink);
+  scroll-margin-top: 100px;
+}
+.study-image {
+  margin: 0;
+  background: #dddcd3;
+}
+.study-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  pointer-events: none;
+}
+.study-copy {
+  padding-top: 28px;
+  pointer-events: none;
+}
+.study-copy > * {
+  pointer-events: auto;
+}
+.study-meta {
+  display: block;
+  width: fit-content;
+  font-size: 9px;
+  letter-spacing: 0.12em;
+  color: #6b7162;
+}
+.study-title {
+  width: fit-content;
+  max-width: 100%;
+  margin: 12px 0 16px;
+  font-family: var(--serif);
+  font-size: clamp(32px, 2.7vw, 46px);
+  font-weight: 450;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+}
+.study-description {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.8;
+  color: #626958;
+}
+.study-card:focus-visible,
+.study-image:focus-visible,
 .artwork-card:focus-visible,
 .event-row:focus-visible,
 .about-visual:focus-visible {
@@ -672,6 +728,8 @@ svg {
 .canvas-section:last-child > .section-divider-end {
   display: none;
 }
+.study-card[data-target-hover],
+.study-image[data-target-hover],
 .artwork-card[data-target-hover],
 .menu-item[data-target-hover],
 .event-row[data-target-hover],
@@ -871,7 +929,8 @@ body[data-editor-mode="dragging"] .section-divider {
   }
 }
 @media (max-width: 1199px) {
-  .artwork-grid {
+  .artwork-grid,
+  .study-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
   .section-padding {

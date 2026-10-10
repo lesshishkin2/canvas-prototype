@@ -39,7 +39,17 @@ import "@fontsource-variable/cormorant-garamond";
 
 const listStyles = {
   menu: { item: "menu-item", container: "menu-list", label: "Пункт меню" },
-  works: { item: "artwork-card", container: "artwork-grid", label: "Работа" },
+  works: {
+    item: "artwork-card",
+    container: "artwork-grid",
+    label: "Работа",
+    backgroundImage: true,
+  },
+  studies: {
+    item: "study-card",
+    container: "study-grid",
+    label: "Деталь коллекции",
+  },
   exhibitions: {
     item: "event-row",
     container: "event-list",
@@ -72,6 +82,25 @@ function ItemView({ item, list, onChange, ghost = false }) {
         onChange={(value) => onChange(item.id, key, value)}
         className={className}
       />
+    );
+  if (list === "studies")
+    return (
+      <>
+        <figure
+          className="study-image"
+          data-editor-target={ghost ? undefined : `${item.id}.image`}
+          data-kind={ghost ? undefined : "image"}
+          tabIndex={ghost ? undefined : 0}
+          aria-label={`Изображение: ${item.title}`}
+        >
+          <img src={item.image} alt={item.title} draggable="false" />
+        </figure>
+        <div className="study-copy">
+          {text("meta", "study-meta")}
+          {text("title", "study-title", "h3")}
+          {text("description", "study-description", "p")}
+        </div>
+      </>
     );
   const cta = ghost ? (
     <div
@@ -149,7 +178,7 @@ function SortableItem({ item, list, count, onChange, over, active }) {
       data-kind="item"
       data-list={list}
       data-item={item.id}
-      data-image={!!item.image}
+      data-image={!!listStyles[list].backgroundImage && !!item.image}
       data-link={!!item.link}
       data-tool-placement={list === "menu" ? "above" : undefined}
       tabIndex={0}
@@ -335,6 +364,7 @@ export function App() {
       counts={{
         menu: lists.menu.length,
         works: lists.works.length,
+        studies: lists.studies.length,
         exhibitions: lists.exhibitions.length,
       }}
     >
@@ -386,6 +416,21 @@ export function App() {
             list="works"
             items={lists.works}
             onChange={changeItem("works")}
+            onReorder={reorder}
+          />
+        </Section>
+        <Section id="studies" className="studies section-padding">
+          <div className="section-heading">
+            <div>
+              {text("studies.eyebrow", "eyebrow")}
+              {text("studies.title", "section-title", "h2")}
+            </div>
+            {text("studies.description", "section-intro", "p")}
+          </div>
+          <Repeater
+            list="studies"
+            items={lists.studies}
+            onChange={changeItem("studies")}
             onReorder={reorder}
           />
         </Section>
