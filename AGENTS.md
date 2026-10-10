@@ -10,7 +10,7 @@ Text editing, duplication, deletion with a last-item guard, and sorting within e
 
 The first canvas section is a menu with five initial links. Each menu label is part of its repeatable item, so hovering the label shows the shared link/copy/delete/drag toolbar above the item. Clicking the label edits plain text; Enter finishes. Links wrap into multiple rows when needed and sort within the menu only. Link editing remains an icon-only demo, consistent with the rest of the prototype.
 
-Button, text-link, and menu toolbars align to the upper-right corner with the same 8 px right inset as other element tools. For these compact targets the toolbar sits above the element so it does not cover editable text; it flips below when the fixed editor bar leaves insufficient space above.
+Button, text-link, and menu toolbars align exactly with the element's right edge, without a right inset. For these compact targets the toolbar sits above the element so it does not cover editable text; it flips below when the fixed editor bar leaves insufficient space above. When scrolled under the fixed editor bar, the section toolbar touches its bottom edge with no gap. Preserve the 8 px inset for ordinary item tools.
 
 ## Local workflow
 

@@ -42,7 +42,9 @@ function checkPosition(tools, owner) {
     r = owner.getBoundingClientRect();
   if (owner.dataset.kind === "section") {
     assert(
-      Math.abs(p.left - r.left) < 1 && Math.abs(p.width - r.width) < 1,
+      Math.abs(p.left - r.left) < 1 &&
+        Math.abs(p.width - r.width) < 1 &&
+        Math.abs(p.top - Math.max(66, r.top)) < 1,
       "Section geometry is stale",
     );
   } else if (owner.dataset.kind === "image") {
@@ -55,9 +57,14 @@ function checkPosition(tools, owner) {
       "Image tools are not vertically centered",
     );
   } else {
+    const right =
+      r.right -
+      (owner.dataset.kind === "link" || owner.dataset.toolPlacement === "above"
+        ? 0
+        : 8);
     assert(
-      Math.abs(p.right - (r.right - 8)) < 1,
-      `First-frame horizontal jump for ${tools.dataset.owner}: ${p.right} instead of ${r.right - 8}`,
+      Math.abs(p.right - right) < 1,
+      `First-frame horizontal jump for ${tools.dataset.owner}: ${p.right} instead of ${right}`,
     );
     if (owner.dataset.kind !== "link")
       assert(Math.abs(p.top - (r.top + 8)) < 1, "Toolbar top position jumped");

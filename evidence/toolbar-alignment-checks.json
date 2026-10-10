@@ -1,0 +1,562 @@
+{
+  "date": "2026-10-11",
+  "build": "passed",
+  "console": "No errors or warnings",
+  "directMeasurements": {
+    "sectionToTopbarGap": 0,
+    "menuRightGap": 0,
+    "buttonRightGap": 0,
+    "textLinkRightGap": 0
+  },
+  "viewports": [
+    {
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "edgeCases": [
+        {
+          "id": "edge-wide.image",
+          "samples": 21,
+          "firstFrame": {
+            "left": 188.6640625,
+            "top": 405.3359375,
+            "parentBottom": 347.84375,
+            "anchorTop": 313.84375
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-narrow.image",
+          "samples": 21,
+          "firstFrame": {
+            "left": 481.5,
+            "top": 353.84375,
+            "parentBottom": 347.84375,
+            "anchorTop": 313.84375
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-link.cta",
+          "samples": 22,
+          "firstFrame": {
+            "left": 940,
+            "top": 396.84375,
+            "parentBottom": 347.84375,
+            "anchorTop": 351.84375
+          },
+          "result": "passed"
+        },
+        {
+          "id": "displaced-link-access",
+          "result": "passed"
+        },
+        {
+          "id": "image-and-link-under-topbar",
+          "result": "passed"
+        },
+        {
+          "id": "independent-copy-and-delete",
+          "result": "passed"
+        },
+        {
+          "id": "mixed-width-sort",
+          "result": "passed"
+        }
+      ],
+      "motion": {
+        "transitions": [
+          {
+            "id": "studies",
+            "first": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1014,
+              "opacity": 0.482842
+            },
+            "last": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1014,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1.image",
+            "first": {
+              "left": 242,
+              "top": 472.3125,
+              "width": 51,
+              "opacity": 0.506339
+            },
+            "last": {
+              "left": 242,
+              "top": 472.3125,
+              "width": 51,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1",
+            "first": {
+              "left": 407,
+              "top": 321.1875,
+              "width": 80,
+              "opacity": 1
+            },
+            "last": {
+              "left": 407,
+              "top": 321.1875,
+              "width": 80,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1.cta",
+            "first": {
+              "left": 184,
+              "top": 785.71875,
+              "width": 26,
+              "opacity": 0.482081
+            },
+            "last": {
+              "left": 184,
+              "top": 785.71875,
+              "width": 26,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "studies",
+            "first": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1014,
+              "opacity": 1
+            },
+            "last": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1014,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-2.image",
+            "first": {
+              "left": 721,
+              "top": 472.3125,
+              "width": 51,
+              "opacity": 0.482512
+            },
+            "last": {
+              "left": 721,
+              "top": 472.3125,
+              "width": 51,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "studies",
+            "first": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1014,
+              "opacity": 1
+            },
+            "last": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1014,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1.image",
+            "first": {
+              "left": 242,
+              "top": 472.3125,
+              "width": 51,
+              "opacity": 0.507984
+            },
+            "last": {
+              "left": 242,
+              "top": 472.3125,
+              "width": 51,
+              "opacity": 1
+            }
+          }
+        ],
+        "interruptedExit": "passed",
+        "keyboardAndEditing": "passed"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "edgeCases": [
+        {
+          "id": "edge-wide.image",
+          "samples": 21,
+          "firstFrame": {
+            "left": 302.84375,
+            "top": 491.7109375,
+            "parentBottom": 384.90625,
+            "anchorTop": 350.90625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-narrow.image",
+          "samples": 22,
+          "firstFrame": {
+            "left": 689.5,
+            "top": 390.90625,
+            "parentBottom": 384.90625,
+            "anchorTop": 350.90625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-link.cta",
+          "samples": 23,
+          "firstFrame": {
+            "left": 1324,
+            "top": 433.90625,
+            "parentBottom": 384.90625,
+            "anchorTop": 388.90625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "displaced-link-access",
+          "result": "passed"
+        },
+        {
+          "id": "image-and-link-under-topbar",
+          "result": "passed"
+        },
+        {
+          "id": "independent-copy-and-delete",
+          "result": "passed"
+        },
+        {
+          "id": "mixed-width-sort",
+          "result": "passed"
+        }
+      ],
+      "motion": {
+        "transitions": [
+          {
+            "id": "studies",
+            "first": {
+              "left": 0,
+              "top": 90.46875,
+              "width": 1430,
+              "opacity": 0.482994
+            },
+            "last": {
+              "left": 0,
+              "top": 90.46875,
+              "width": 1430,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1.image",
+            "first": {
+              "left": 252.828125,
+              "top": 494.1796875,
+              "width": 51,
+              "opacity": 0.487874
+            },
+            "last": {
+              "left": 252.828125,
+              "top": 494.1796875,
+              "width": 51,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1",
+            "first": {
+              "left": 396.6640625,
+              "top": 358.9375,
+              "width": 80,
+              "opacity": 1
+            },
+            "last": {
+              "left": 396.6640625,
+              "top": 358.9375,
+              "width": 80,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1.cta",
+            "first": {
+              "left": 216,
+              "top": 798.9375,
+              "width": 26,
+              "opacity": 0.486083
+            },
+            "last": {
+              "left": 216,
+              "top": 798.9375,
+              "width": 26,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "studies",
+            "first": {
+              "left": 0,
+              "top": 90.46875,
+              "width": 1430,
+              "opacity": 1
+            },
+            "last": {
+              "left": 0,
+              "top": 90.46875,
+              "width": 1430,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-2.image",
+            "first": {
+              "left": 689.4921875,
+              "top": 494.1796875,
+              "width": 51,
+              "opacity": 0.506806
+            },
+            "last": {
+              "left": 689.4921875,
+              "top": 494.1796875,
+              "width": 51,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "studies",
+            "first": {
+              "left": 0,
+              "top": 90.46875,
+              "width": 1430,
+              "opacity": 1
+            },
+            "last": {
+              "left": 0,
+              "top": 90.46875,
+              "width": 1430,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1.image",
+            "first": {
+              "left": 252.828125,
+              "top": 494.1796875,
+              "width": 51,
+              "opacity": 0.507616
+            },
+            "last": {
+              "left": 252.828125,
+              "top": 494.1796875,
+              "width": 51,
+              "opacity": 1
+            }
+          }
+        ],
+        "interruptedExit": "passed",
+        "keyboardAndEditing": "passed"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "edgeCases": [
+        {
+          "id": "edge-wide.image",
+          "samples": 21,
+          "firstFrame": {
+            "left": 431,
+            "top": 565.0625,
+            "parentBottom": 395.765625,
+            "anchorTop": 361.765625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-narrow.image",
+          "samples": 21,
+          "firstFrame": {
+            "left": 929.5,
+            "top": 401.765625,
+            "parentBottom": 395.765625,
+            "anchorTop": 361.765625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-link.cta",
+          "samples": 21,
+          "firstFrame": {
+            "left": 1780,
+            "top": 444.765625,
+            "parentBottom": 395.765625,
+            "anchorTop": 399.765625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "displaced-link-access",
+          "result": "passed"
+        },
+        {
+          "id": "image-and-link-under-topbar",
+          "result": "passed"
+        },
+        {
+          "id": "independent-copy-and-delete",
+          "result": "passed"
+        },
+        {
+          "id": "mixed-width-sort",
+          "result": "passed"
+        }
+      ],
+      "motion": {
+        "transitions": [
+          {
+            "id": "studies",
+            "first": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1910,
+              "opacity": 0.491394
+            },
+            "last": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1910,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1.image",
+            "first": {
+              "left": 348.828125,
+              "top": 558.4296875,
+              "width": 51,
+              "opacity": 0.507321
+            },
+            "last": {
+              "left": 348.828125,
+              "top": 558.4296875,
+              "width": 51,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1",
+            "first": {
+              "left": 564.6640625,
+              "top": 369.1875,
+              "width": 80,
+              "opacity": 1
+            },
+            "last": {
+              "left": 564.6640625,
+              "top": 369.1875,
+              "width": 80,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1.cta",
+            "first": {
+              "left": 240,
+              "top": 924.6640625,
+              "width": 26,
+              "opacity": 0.507836
+            },
+            "last": {
+              "left": 240,
+              "top": 924.6640625,
+              "width": 26,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "studies",
+            "first": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1910,
+              "opacity": 1
+            },
+            "last": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1910,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-2.image",
+            "first": {
+              "left": 929.4921875,
+              "top": 558.4296875,
+              "width": 51,
+              "opacity": 0.506364
+            },
+            "last": {
+              "left": 929.4921875,
+              "top": 558.4296875,
+              "width": 51,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "studies",
+            "first": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1910,
+              "opacity": 1
+            },
+            "last": {
+              "left": 0,
+              "top": 89.59375,
+              "width": 1910,
+              "opacity": 1
+            }
+          },
+          {
+            "id": "study-1.image",
+            "first": {
+              "left": 348.828125,
+              "top": 558.4296875,
+              "width": 51,
+              "opacity": 0.507248
+            },
+            "last": {
+              "left": 348.828125,
+              "top": 558.4296875,
+              "width": 51,
+              "opacity": 1
+            }
+          }
+        ],
+        "interruptedExit": "passed",
+        "keyboardAndEditing": "passed"
+      }
+    }
+  ]
+}

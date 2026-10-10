@@ -108,7 +108,7 @@ export async function runEdgeCaseChecks() {
         assert(
           p.top >= parent.bottom + 6 &&
             p.top >= a.bottom + 7 &&
-            Math.abs(p.right - a.right + 8) < 1,
+            Math.abs(p.right - a.right) < 1,
           "Link collision is unresolved or covers its label",
         );
       }
@@ -152,7 +152,9 @@ export async function runEdgeCaseChecks() {
     b = panel("edge-narrow").getBoundingClientRect(),
     c = panel("edge-narrow.image").getBoundingClientRect();
   assert(
-    Math.abs(b.top - a.bottom - 6) < 1 && Math.abs(c.top - b.bottom - 6) < 1,
+    Math.abs(a.top - q(".editor-topbar").getBoundingClientRect().bottom) < 1 &&
+      Math.abs(b.top - a.bottom - 6) < 1 &&
+      Math.abs(c.top - b.bottom - 6) < 1,
     "Three-level narrow stack lost spacing on scroll",
   );
   hover("edge-link.cta");

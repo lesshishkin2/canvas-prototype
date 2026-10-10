@@ -419,7 +419,7 @@ export async function runChecks() {
     assert(
       panel.top >= 66 &&
         (panel.bottom <= item.top || panel.top >= item.bottom) &&
-        Math.abs(panel.right - (item.right - 8)) < 1,
+        Math.abs(panel.right - item.right) < 1,
       "Menu toolbar covers the label or topbar",
     );
     pointer(
@@ -736,7 +736,7 @@ export async function runChecks() {
       r.top >= a.bottom &&
         r.left >= 0 &&
         r.right <= innerWidth &&
-        Math.abs(r.right - (a.right - 8)) < 1,
+        Math.abs(r.right - a.right) < 1,
       "Link toolbar not right-aligned/flipped/clamped",
     );
   });
