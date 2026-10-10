@@ -111,7 +111,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       const panel = document.querySelector(".floating-tools");
       if (
         event.type === "pointermove" &&
-        previous?.kind === "link" &&
+        (previous?.kind === "link" || previous?.placement === "above") &&
         panel &&
         (!source || source.contains(previous.node))
       ) {
@@ -155,6 +155,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
         item: source.dataset.item,
         hasImage: source.dataset.image === "true",
         hasLink: source.dataset.link === "true",
+        placement: source.dataset.toolPlacement,
         section: section?.dataset.section,
       });
     }
@@ -300,7 +301,7 @@ function FloatingTools({ target, counts, onDuplicate, onRemove, hidden }) {
         left = r.left;
         top = Math.max(TOP, r.top);
         if (top + 40 > r.bottom) return setPosition(null);
-      } else if (target.kind === "link") {
+      } else if (target.kind === "link" || target.placement === "above") {
         left = r.left;
         top = r.top - p.height - 7;
         if (top < TOP + 6) top = r.bottom + 7;
@@ -450,6 +451,7 @@ export function Editable({
   as: Tag = "span",
   className = "",
   singleLine = false,
+  itemLabel = false,
   kind = "text",
   label,
 }) {
@@ -468,8 +470,8 @@ export function Editable({
     <Tag
       ref={ref}
       className={`editable ${className}`}
-      data-editor-target={id}
-      data-kind={kind}
+      data-editor-target={itemLabel ? undefined : id}
+      data-kind={itemLabel ? undefined : kind}
       data-field={id}
       data-empty={!value.trim() || undefined}
       data-placeholder="Введите текст"

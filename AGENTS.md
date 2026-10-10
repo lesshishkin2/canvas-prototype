@@ -8,6 +8,8 @@ The closest editable target owns the visible toolbar. Maintain this action order
 
 Text editing, duplication, deletion with a last-item guard, and sorting within each original list are functional. Drag starts only from the handle after 6 px. Escape and dropping outside the original container cancel. Desktop Chrome at 1024, 1440, and 1920 px is the requested scope; touch and a global undo history are excluded.
 
+The first canvas section is a menu with five initial links. Each menu label is part of its repeatable item, so hovering the label shows the shared link/copy/delete/drag toolbar above the item. Clicking the label edits plain text; Enter finishes. Links wrap into multiple rows when needed and sort within the menu only. Link editing remains an icon-only demo, consistent with the rest of the prototype.
+
 ## Local workflow
 
 Run the local server yourself and open the preview in the browser available to this environment. Do not give the user server-start instructions when you can run it.

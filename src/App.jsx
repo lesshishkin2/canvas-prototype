@@ -37,7 +37,30 @@ import {
 import "@fontsource-variable/inter";
 import "@fontsource-variable/cormorant-garamond";
 
+const listStyles = {
+  menu: { item: "menu-item", container: "menu-list", label: "Пункт меню" },
+  works: { item: "artwork-card", container: "artwork-grid", label: "Работа" },
+  exhibitions: {
+    item: "event-row",
+    container: "event-list",
+    label: "Выставка",
+  },
+};
+
 function ItemView({ item, list, onChange, ghost = false }) {
+  if (list === "menu")
+    return ghost ? (
+      <span className="menu-label">{item.title}</span>
+    ) : (
+      <Editable
+        id={`${item.id}.title`}
+        value={item.title}
+        onChange={(value) => onChange(item.id, "title", value)}
+        className="menu-label"
+        singleLine
+        itemLabel
+      />
+    );
   const text = (key, className, as = "span") =>
     ghost ? (
       ReactText(as, { className, children: item[key] })
@@ -102,6 +125,7 @@ function ReactText(Tag, props) {
 }
 
 function SortableItem({ item, list, count, onChange, over, active }) {
+  const Tag = list === "menu" ? "li" : "article";
   const { handles } = useEditor();
   const {
     setNodeRef,
@@ -117,24 +141,26 @@ function SortableItem({ item, list, count, onChange, over, active }) {
   }, [handles, item.id, attributes, listeners]);
   const styles = { transform: CSS.Transform.toString(transform), transition };
   return (
-    <article
+    <Tag
       ref={setNodeRef}
       style={styles}
-      className={`${list === "works" ? "artwork-card" : "event-row"} ${isDragging ? "sort-source" : ""} ${over === item.id && active !== item.id ? "drop-target" : ""}`}
+      className={`${listStyles[list].item} ${isDragging ? "sort-source" : ""} ${over === item.id && active !== item.id ? "drop-target" : ""}`}
       data-editor-target={item.id}
       data-kind="item"
       data-list={list}
       data-item={item.id}
       data-image={!!item.image}
       data-link={!!item.link}
+      data-tool-placement={list === "menu" ? "above" : undefined}
       tabIndex={0}
-      aria-label={`${list === "works" ? "Работа" : "Выставка"}: ${item.title}`}
+      aria-label={`${listStyles[list].label}: ${item.title}`}
     >
       <ItemView item={item} list={list} onChange={onChange} />
-    </article>
+    </Tag>
   );
 }
 function Repeater({ list, items, onChange, onReorder }) {
+  const Container = list === "menu" ? "ul" : "div";
   const { startDrag, stopDrag, pointerPosition } = useEditor(),
     container = useRef(null);
   const [active, setActive] = useState(null),
@@ -221,13 +247,15 @@ function Repeater({ list, items, onChange, onReorder }) {
       <SortableContext
         items={items.map((item) => item.id)}
         strategy={
-          list === "works" ? rectSortingStrategy : verticalListSortingStrategy
+          list === "exhibitions"
+            ? verticalListSortingStrategy
+            : rectSortingStrategy
         }
       >
-        <div
+        <Container
           ref={container}
           data-list-container={list}
-          className={list === "works" ? "artwork-grid" : "event-list"}
+          className={listStyles[list].container}
         >
           {items.map((item) => (
             <SortableItem
@@ -240,14 +268,12 @@ function Repeater({ list, items, onChange, onReorder }) {
               active={active}
             />
           ))}
-        </div>
+        </Container>
       </SortableContext>
       {createPortal(
         <DragOverlay dropAnimation={null}>
           {activeItem && (
-            <article
-              className={`${list === "works" ? "artwork-card" : "event-row"} drag-preview`}
-            >
+            <article className={`${listStyles[list].item} drag-preview`}>
               <ItemView item={activeItem} list={list} ghost />
             </article>
           )}
@@ -307,12 +333,23 @@ export function App() {
       onDuplicate={duplicate}
       onRemove={remove}
       counts={{
+        menu: lists.menu.length,
         works: lists.works.length,
         exhibitions: lists.exhibitions.length,
       }}
     >
       <Topbar />
       <main className="canvas" aria-label="Canvas редактора FORMA">
+        <Section id="menu" className="site-menu">
+          <nav aria-label="Меню галереи">
+            <Repeater
+              list="menu"
+              items={lists.menu}
+              onChange={changeItem("menu")}
+              onReorder={reorder}
+            />
+          </nav>
+        </Section>
         <Section id="hero" hasImage className="hero">
           <img
             className="hero-art"

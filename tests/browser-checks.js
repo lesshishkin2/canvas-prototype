@@ -145,9 +145,9 @@ export async function runChecks() {
       document.activeElement?.blur();
     }
   }
-  await test("Local assets, five sections, no horizontal overflow", async () => {
+  await test("Local assets, six sections, no horizontal overflow", async () => {
     await document.fonts.ready;
-    assert(all("[data-section]").length === 5, "Incorrect section count");
+    assert(all("[data-section]").length === 6, "Incorrect section count");
     assert(
       document.documentElement.scrollWidth <= innerWidth,
       "Horizontal overflow",
@@ -162,6 +162,130 @@ export async function runChecks() {
         .every((entry) => new URL(entry.name).origin === location.origin),
       "External asset request",
     );
+  });
+  await test("Menu is first; label hover exposes all item actions", async () => {
+    assert(
+      query("[data-section]").dataset.section === "menu",
+      "Menu is not first",
+    );
+    assert(order("menu").length === 5, "Incorrect initial menu size");
+    window.scrollTo(0, 0);
+    await hover(field("menu-1.title"), false);
+    assert(
+      toolbar()?.dataset.owner === "menu-1",
+      "Label has a separate toolbar",
+    );
+    assert(
+      labels().join("|") ===
+        "Редактировать ссылку элемента · демо|Копировать элемент|Удалить элемент|Перетащить элемент",
+      "Incorrect menu actions",
+    );
+    const item = query('[data-item="menu-1"]').getBoundingClientRect(),
+      panel = toolbar().getBoundingClientRect();
+    assert(
+      panel.top >= 66 && panel.bottom <= item.top,
+      "Menu toolbar covers label or topbar",
+    );
+    pointer(
+      query('[data-section="menu"]'),
+      "pointermove",
+      panel.x + 10,
+      (panel.bottom + item.top) / 2,
+    );
+    await wait(220);
+    assert(toolbar()?.dataset.owner === "menu-1", "Menu toolbar lost over gap");
+    const href = location.href;
+    await action("Редактировать ссылку элемента · демо");
+    assert(
+      location.href === href && order("menu").length === 5,
+      "Link placeholder changed page",
+    );
+    await edit("menu-1.title", "Коллекция 2026");
+    const el = field("menu-1.title");
+    el.focus();
+    el.dispatchEvent(
+      new KeyboardEvent("keydown", {
+        key: "Enter",
+        bubbles: true,
+        cancelable: true,
+      }),
+    );
+    await wait();
+    assert(
+      document.activeElement !== el && el.innerText === "Коллекция 2026",
+      "Menu Enter did not finish editing",
+    );
+  });
+  await test("Menu copies independently and reorders horizontally with cancellation", async () => {
+    const before = order("menu");
+    await hover(field("menu-1.title"));
+    await action("Копировать элемент");
+    const copy = order("menu")[1];
+    assert(
+      !before.includes(copy) &&
+        field(`${copy}.title`).innerText === "Коллекция 2026",
+      "Menu copy failed",
+    );
+    await edit(`${copy}.title`, "Новая ссылка");
+    assert(
+      field("menu-1.title").innerText === "Коллекция 2026",
+      "Menu copy shares text",
+    );
+    await hover(query(`[data-item="${copy}"]`));
+    await action("Удалить элемент");
+    assert(!toolbar(), "Menu delete leaves an active toolbar");
+    await drag("menu", "menu-1", "menu-3");
+    assert(order("menu")[2] === "menu-1", "Horizontal menu reorder failed");
+    await drag("menu", "menu-1", "menu-2");
+    assert(
+      order("menu").join() === before.join(),
+      "Reverse menu reorder failed",
+    );
+    await drag("menu", "menu-1", "menu-3", { cancel: true });
+    await drag("menu", "menu-1", "menu-3", { outside: true });
+    await drag("menu", "menu-1", "work-1");
+    assert(
+      order("menu").join() === before.join() && order("works").length === 6,
+      "Menu cancelled or cross-list move committed",
+    );
+  });
+  await test("Menu wraps and sorts across rows; final item cannot be deleted", async () => {
+    for (let i = 0; i < 10; i++) {
+      await hover(query('[data-item="menu-5"]'));
+      await action("Копировать элемент");
+    }
+    const before = order("menu"),
+      last = before.at(-1);
+    assert(
+      query(`[data-item="${last}"]`).getBoundingClientRect().top >
+        query('[data-item="menu-1"]').getBoundingClientRect().top,
+      "Menu did not wrap",
+    );
+    const indicated = await drag("menu", "menu-1", last);
+    assert(
+      indicated &&
+        order("menu").indexOf("menu-1") === before.indexOf(indicated) &&
+        order("menu").indexOf("menu-1") > 4,
+      "Wrapped menu reorder failed",
+    );
+    await edit("menu-1.title", "Очень длинная ссылка ".repeat(12));
+    assert(
+      document.documentElement.scrollWidth <= innerWidth,
+      "Menu text overflow",
+    );
+    while (order("menu").length > 1) {
+      await hover(query(`[data-item="${order("menu")[0]}"]`));
+      await action("Удалить элемент");
+    }
+    await hover(query(`[data-item="${order("menu")[0]}"]`));
+    const disabled = all('.floating-tools [aria-disabled="true"]');
+    assert(
+      disabled.length === 2 &&
+        labels().includes("Последний элемент нельзя удалить"),
+      "Menu final item is not protected",
+    );
+    disabled.forEach((button) => button.click());
+    assert(order("menu").length === 1, "Last menu item removed");
   });
   await test("Ordered card actions and closest target hover", async () => {
     await hover(query('[data-item="work-1"]'));

@@ -29,6 +29,13 @@ export const initialContent = {
 };
 
 export const initialLists = {
+  menu: [
+    { id: "menu-1", title: "Коллекция", link: true },
+    { id: "menu-2", title: "О галерее", link: true },
+    { id: "menu-3", title: "Выставки", link: true },
+    { id: "menu-4", title: "Спланировать визит", link: true },
+    { id: "menu-5", title: "Контакты", link: true },
+  ],
   works: [
     {
       id: "work-1",

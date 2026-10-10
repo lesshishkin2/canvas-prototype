@@ -115,6 +115,50 @@ svg {
   position: relative;
   isolation: isolate;
 }
+.site-menu {
+  padding: 40px clamp(32px, 5vw, 96px) 28px;
+  background: var(--paper);
+  color: var(--ink);
+  border-bottom: 1px solid #24272020;
+}
+.menu-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: flex-start;
+  gap: 12px 24px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.menu-item {
+  position: relative;
+  flex: 0 1 auto;
+  min-width: 112px;
+  max-width: min(320px, 100%);
+  padding: 12px 16px;
+  background: var(--paper);
+  text-align: center;
+  color: var(--ink);
+  scroll-margin-top: 110px;
+  outline: none;
+}
+.menu-label {
+  display: block;
+  font-family: "Inter Variable", Inter, sans-serif;
+  font-size: 14px;
+  font-weight: 450;
+  line-height: 1.5;
+}
+.menu-item:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 3px;
+}
+.menu-item[data-target-hover] .menu-label {
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 1px;
+}
 .section-padding {
   padding: 100px clamp(32px, 5vw, 96px);
 }
@@ -629,6 +673,7 @@ svg {
   display: none;
 }
 .artwork-card[data-target-hover],
+.menu-item[data-target-hover],
 .event-row[data-target-hover],
 .about-visual[data-target-hover] {
   outline: 1px solid #a489dc;
