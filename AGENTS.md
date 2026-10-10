@@ -16,6 +16,10 @@ Button, text-link, and menu toolbars align to the upper-right corner with the sa
 
 The “Рассмотреть ближе” section after the collection contains the independent `studies` list. Its repeatable cards have ordinary inline images, not backgrounds or item links. Card tools are exactly duplicate/delete/drag; the nested image owns only replacement/editing tools. Hovering the image or text hides the parent toolbar. Keep image targets and text fields unique when duplicating, and omit editor targets from the drag preview.
 
+The user is testing tight image spacing in these cards: keep only 6 px between the image and the top/side card edges. Text retains its 20 px side inset. Do not reserve a large empty strip above the image for parent tools.
+
+Each studies card also contains a button with an editable label and its own link-edit demo toolbar. It is a nested link target; the parent card still has only duplicate/delete/drag.
+
 Run the local server yourself and open the preview in the browser available to this environment. Do not give the user server-start instructions when you can run it.
 
 Before making substantial visual changes, use the Product Design plugin's `get-context` skill when the visual source is unclear or no longer matches the current goal. When the user gives durable prototype-specific design feedback, preferences, or decisions, record them in `AGENTS.md`.

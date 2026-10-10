@@ -404,7 +404,7 @@ svg {
 .study-card {
   position: relative;
   min-width: 0;
-  padding: 44px 20px 30px;
+  padding: 6px 6px 30px;
   background: #f7f6ef;
   color: var(--ink);
   scroll-margin-top: 100px;
@@ -421,11 +421,24 @@ svg {
   pointer-events: none;
 }
 .study-copy {
-  padding-top: 28px;
+  padding: 28px 14px 0;
   pointer-events: none;
 }
 .study-copy > * {
   pointer-events: auto;
+}
+.study-cta {
+  margin-top: 24px;
+  padding: 12px 16px;
+  min-width: 150px;
+  gap: 24px;
+  border: 1px solid #9da38f;
+  font-size: 11px;
+  line-height: 1.5;
+}
+.study-cta svg {
+  width: 15px;
+  height: 15px;
 }
 .study-meta {
   display: block;

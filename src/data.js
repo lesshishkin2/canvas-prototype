@@ -98,6 +98,7 @@ export const initialLists = {
   studies: [
     {
       id: "study-1",
+      cta: "Подробнее",
       image: "/assets/art/abstract.jpg",
       meta: "01 / ЦВЕТ",
       title: "Чувствовать цвет",
@@ -106,6 +107,7 @@ export const initialLists = {
     },
     {
       id: "study-2",
+      cta: "Подробнее",
       image: "/assets/art/drawing.jpg",
       meta: "02 / ЛИНИЯ",
       title: "След движения",
@@ -114,6 +116,7 @@ export const initialLists = {
     },
     {
       id: "study-3",
+      cta: "Подробнее",
       image: "/assets/art/landscape.jpg",
       meta: "03 / ПРОСТРАНСТВО",
       title: "За горизонтом",

@@ -83,6 +83,25 @@ function ItemView({ item, list, onChange, ghost = false }) {
         className={className}
       />
     );
+  const ctaClass =
+    list === "works"
+      ? "card-cta"
+      : list === "studies"
+        ? "study-cta"
+        : "event-link";
+  const cta = ghost ? (
+    <div className={`canvas-link ${ctaClass}`}>
+      <span>{item.cta}</span>
+      <ArrowUpRight />
+    </div>
+  ) : (
+    <CanvasLink
+      id={`${item.id}.cta`}
+      value={item.cta}
+      onChange={(value) => onChange(item.id, "cta", value)}
+      className={ctaClass}
+    />
+  );
   if (list === "studies")
     return (
       <>
@@ -99,24 +118,10 @@ function ItemView({ item, list, onChange, ghost = false }) {
           {text("meta", "study-meta")}
           {text("title", "study-title", "h3")}
           {text("description", "study-description", "p")}
+          {cta}
         </div>
       </>
     );
-  const cta = ghost ? (
-    <div
-      className={`canvas-link ${list === "works" ? "card-cta" : "event-link"}`}
-    >
-      <span>{item.cta}</span>
-      <ArrowUpRight />
-    </div>
-  ) : (
-    <CanvasLink
-      id={`${item.id}.cta`}
-      value={item.cta}
-      onChange={(value) => onChange(item.id, "cta", value)}
-      className={list === "works" ? "card-cta" : "event-link"}
-    />
-  );
   if (list === "works")
     return (
       <>
