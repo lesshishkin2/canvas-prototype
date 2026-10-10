@@ -465,11 +465,100 @@ svg {
 }
 .study-card:focus-visible,
 .study-image:focus-visible,
+.edge-card:focus-visible,
+.edge-image:focus-visible,
 .artwork-card:focus-visible,
 .event-row:focus-visible,
 .about-visual:focus-visible {
   outline: 2px solid var(--purple);
   outline-offset: 3px;
+}
+.edge-cases {
+  background: #deded2;
+  color: var(--ink);
+}
+.edge-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: clamp(24px, 2.8vw, 48px);
+}
+.edge-card {
+  position: relative;
+  flex: 1 1 260px;
+  min-width: 0;
+  background: #f7f6ef;
+  scroll-margin-top: 130px;
+}
+.edge-card.edge-narrow {
+  flex: 0 0 180px;
+}
+.edge-image {
+  margin: 0;
+  background: #d3d2c6;
+}
+.edge-image img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 5 / 3;
+  object-fit: cover;
+  pointer-events: none;
+}
+.edge-narrow .edge-image img {
+  aspect-ratio: 4 / 5;
+}
+.edge-copy {
+  padding: 26px 24px 32px;
+}
+.edge-meta {
+  display: block;
+  width: fit-content;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: #717565;
+}
+.edge-title {
+  margin: 16px 0;
+  font-family: var(--serif);
+  font-weight: 450;
+  font-size: clamp(32px, 3vw, 48px);
+  line-height: 1.05;
+  letter-spacing: -0.03em;
+}
+.edge-description {
+  margin: 0;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #626958;
+}
+.edge-narrow .edge-copy {
+  padding: 24px 16px 28px;
+}
+.edge-narrow .edge-title {
+  font-size: 30px;
+}
+.edge-link {
+  background: #26352c;
+  color: #f1f0e7;
+}
+.edge-link .edge-meta,
+.edge-link .edge-description {
+  color: #c0c9bb;
+}
+.edge-link-head {
+  display: flex;
+  justify-content: flex-end;
+  padding: 38px 8px 42px;
+}
+.edge-cta {
+  border: 1px solid #a5b898;
+  padding: 10px 14px;
+  gap: 20px;
+  font-size: 12px;
+}
+.edge-cta svg {
+  width: 16px;
+  height: 16px;
 }
 .about {
   display: grid;
@@ -743,6 +832,8 @@ svg {
 }
 .study-card[data-target-hover],
 .study-image[data-target-hover],
+.edge-card[data-target-hover],
+.edge-image[data-target-hover],
 .artwork-card[data-target-hover],
 .menu-item[data-target-hover],
 .event-row[data-target-hover],

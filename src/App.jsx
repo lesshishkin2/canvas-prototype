@@ -55,7 +55,15 @@ const listStyles = {
     container: "event-list",
     label: "Выставка",
   },
+  edges: {
+    item: "edge-card",
+    container: "edge-grid",
+    label: "Пограничный сценарий",
+  },
 };
+
+const itemClass = (list, item) =>
+  `${listStyles[list].item}${list === "edges" ? ` edge-${item.variant}` : ""}`;
 
 function ItemView({ item, list, onChange, ghost = false }) {
   if (list === "menu")
@@ -88,7 +96,9 @@ function ItemView({ item, list, onChange, ghost = false }) {
       ? "card-cta"
       : list === "studies"
         ? "study-cta"
-        : "event-link";
+        : list === "edges"
+          ? "edge-cta"
+          : "event-link";
   const cta = ghost ? (
     <div className={`canvas-link ${ctaClass}`}>
       <span>{item.cta}</span>
@@ -102,6 +112,29 @@ function ItemView({ item, list, onChange, ghost = false }) {
       className={ctaClass}
     />
   );
+  if (list === "edges")
+    return (
+      <>
+        {item.image ? (
+          <figure
+            className="edge-image"
+            data-editor-target={ghost ? undefined : `${item.id}.image`}
+            data-kind={ghost ? undefined : "image"}
+            tabIndex={ghost ? undefined : 0}
+            aria-label={`Изображение: ${item.title}`}
+          >
+            <img src={item.image} alt={item.title} draggable="false" />
+          </figure>
+        ) : (
+          <div className="edge-link-head">{cta}</div>
+        )}
+        <div className="edge-copy">
+          {text("meta", "edge-meta")}
+          {text("title", "edge-title", "h3")}
+          {text("description", "edge-description", "p")}
+        </div>
+      </>
+    );
   if (list === "studies")
     return (
       <>
@@ -178,7 +211,7 @@ function SortableItem({ item, list, count, onChange, over, active }) {
     <Tag
       ref={setNodeRef}
       style={styles}
-      className={`${listStyles[list].item} ${isDragging ? "sort-source" : ""} ${over === item.id && active !== item.id ? "drop-target" : ""}`}
+      className={`${itemClass(list, item)} ${isDragging ? "sort-source" : ""} ${over === item.id && active !== item.id ? "drop-target" : ""}`}
       data-editor-target={item.id}
       data-kind="item"
       data-list={list}
@@ -307,7 +340,7 @@ function Repeater({ list, items, onChange, onReorder }) {
       {createPortal(
         <DragOverlay dropAnimation={null}>
           {activeItem && (
-            <article className={`${listStyles[list].item} drag-preview`}>
+            <article className={`${itemClass(list, activeItem)} drag-preview`}>
               <ItemView item={activeItem} list={list} ghost />
             </article>
           )}
@@ -371,6 +404,7 @@ export function App() {
         works: lists.works.length,
         studies: lists.studies.length,
         exhibitions: lists.exhibitions.length,
+        edges: lists.edges.length,
       }}
     >
       <Topbar />
@@ -436,6 +470,21 @@ export function App() {
             list="studies"
             items={lists.studies}
             onChange={changeItem("studies")}
+            onReorder={reorder}
+          />
+        </Section>
+        <Section id="edges" className="edge-cases section-padding">
+          <div className="section-heading">
+            <div>
+              {text("edges.eyebrow", "eyebrow")}
+              {text("edges.title", "section-title", "h2")}
+            </div>
+            {text("edges.description", "section-intro", "p")}
+          </div>
+          <Repeater
+            list="edges"
+            items={lists.edges}
+            onChange={changeItem("edges")}
             onReorder={reorder}
           />
         </Section>

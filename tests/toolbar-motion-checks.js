@@ -45,20 +45,21 @@ function checkPosition(tools, owner) {
       Math.abs(p.left - r.left) < 1 && Math.abs(p.width - r.width) < 1,
       "Section geometry is stale",
     );
+  } else if (owner.dataset.kind === "image") {
+    assert(
+      Math.abs(p.left + p.width / 2 - (r.left + r.width / 2)) < 1,
+      "Image tools are not centered from their first visible frame",
+    );
+    assert(
+      Math.abs(p.top - (r.top + 8)) < 1,
+      "Wide image tools moved without a collision",
+    );
   } else {
     assert(
       Math.abs(p.right - (r.right - 8)) < 1,
       `First-frame horizontal jump for ${tools.dataset.owner}: ${p.right} instead of ${r.right - 8}`,
     );
-    if (owner.dataset.kind === "image" && owner.closest('[data-kind="item"]')) {
-      const parent = panel(
-        owner.closest('[data-kind="item"]').dataset.item,
-      ).getBoundingClientRect();
-      assert(
-        Math.abs(p.top - (parent.bottom + 6)) < 1,
-        "Image tools are not stacked with a 6px gap",
-      );
-    } else if (owner.dataset.kind !== "link")
+    if (owner.dataset.kind !== "link")
       assert(Math.abs(p.top - (r.top + 8)) < 1, "Toolbar top position jumped");
     else
       assert(

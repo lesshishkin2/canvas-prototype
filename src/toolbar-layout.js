@@ -13,7 +13,11 @@ export function placeToolbar(target, anchor, size, viewport, ancestors = []) {
   const section = target.kind === "section";
   if (anchor.bottom < TOP + 4 || anchor.top > viewport.height) return null;
   const width = section ? anchor.width : size.width;
-  let left = section ? anchor.left : anchor.right - width - TOOL_INSET;
+  let left = section
+    ? anchor.left
+    : target.kind === "image"
+      ? anchor.left + (anchor.width - width) / 2
+      : anchor.right - width - TOOL_INSET;
   let top;
   if (section) {
     top = Math.max(TOP, anchor.top);

@@ -1,0 +1,330 @@
+{
+  "date": "2026-10-11",
+  "cases": [
+    "Centered wide image without collision",
+    "Centered narrow image shifted below parent with a 6px gap",
+    "Link tools shifted below parent without covering the label"
+  ],
+  "widths": [
+    {
+      "viewport": {
+        "width": 1024,
+        "height": 900
+      },
+      "edgeCases": [
+        {
+          "id": "edge-wide.image",
+          "samples": 20,
+          "firstFrame": {
+            "left": 188.6640625,
+            "top": 321.84375,
+            "parentBottom": 347.84375,
+            "anchorTop": 313.84375
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-narrow.image",
+          "samples": 21,
+          "firstFrame": {
+            "left": 481.5,
+            "top": 353.84375,
+            "parentBottom": 347.84375,
+            "anchorTop": 313.84375
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-link.cta",
+          "samples": 22,
+          "firstFrame": {
+            "left": 932,
+            "top": 396.84375,
+            "parentBottom": 347.84375,
+            "anchorTop": 351.84375
+          },
+          "result": "passed"
+        },
+        {
+          "id": "displaced-link-access",
+          "result": "passed"
+        },
+        {
+          "id": "image-and-link-under-topbar",
+          "result": "passed"
+        },
+        {
+          "id": "independent-copy-and-delete",
+          "result": "passed"
+        },
+        {
+          "id": "mixed-width-sort",
+          "result": "passed"
+        }
+      ],
+      "motion": {
+        "transitions": 8,
+        "correctFirstFrames": true,
+        "interruptedExit": "passed",
+        "keyboardAndEditing": "passed"
+      }
+    },
+    {
+      "viewport": {
+        "width": 1440,
+        "height": 1000
+      },
+      "edgeCases": [
+        {
+          "id": "edge-wide.image",
+          "samples": 21,
+          "firstFrame": {
+            "left": 302.84375,
+            "top": 358.90625,
+            "parentBottom": 384.90625,
+            "anchorTop": 350.90625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-narrow.image",
+          "samples": 20,
+          "firstFrame": {
+            "left": 689.5,
+            "top": 390.90625,
+            "parentBottom": 384.90625,
+            "anchorTop": 350.90625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-link.cta",
+          "samples": 22,
+          "firstFrame": {
+            "left": 1316,
+            "top": 433.90625,
+            "parentBottom": 384.90625,
+            "anchorTop": 388.90625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "displaced-link-access",
+          "result": "passed"
+        },
+        {
+          "id": "image-and-link-under-topbar",
+          "result": "passed"
+        },
+        {
+          "id": "independent-copy-and-delete",
+          "result": "passed"
+        },
+        {
+          "id": "mixed-width-sort",
+          "result": "passed"
+        }
+      ],
+      "motion": {
+        "transitions": 8,
+        "correctFirstFrames": true,
+        "interruptedExit": "passed",
+        "keyboardAndEditing": "passed"
+      },
+      "hierarchy": [
+        {
+          "name": "Zero padding: first visible frame has three accessible levels",
+          "result": "passed",
+          "firstFrame": {
+            "parentTop": 279.9375,
+            "childTop": 279.9375,
+            "gap": -26
+          }
+        },
+        {
+          "name": "Parent identity, position and opacity survive image/text/button transitions",
+          "result": "passed"
+        },
+        {
+          "name": "Crossing the stack, copying and deleting from parent tools while hovering an image",
+          "result": "passed"
+        },
+        {
+          "name": "Parent drag handle works over the image and hides all levels",
+          "result": "passed"
+        },
+        {
+          "name": "Scroll recomputes a three-level stack below the fixed topbar",
+          "result": "passed"
+        },
+        {
+          "name": "Sibling hover updates ownership without duplicate parent panels",
+          "result": "passed"
+        },
+        {
+          "name": "Editing immediately removes every panel",
+          "result": "passed"
+        }
+      ]
+    },
+    {
+      "viewport": {
+        "width": 1920,
+        "height": 1080
+      },
+      "edgeCases": [
+        {
+          "id": "edge-wide.image",
+          "samples": 22,
+          "firstFrame": {
+            "left": 431,
+            "top": 369.765625,
+            "parentBottom": 395.765625,
+            "anchorTop": 361.765625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-narrow.image",
+          "samples": 23,
+          "firstFrame": {
+            "left": 929.5,
+            "top": 401.765625,
+            "parentBottom": 395.765625,
+            "anchorTop": 361.765625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "edge-link.cta",
+          "samples": 23,
+          "firstFrame": {
+            "left": 1772,
+            "top": 444.765625,
+            "parentBottom": 395.765625,
+            "anchorTop": 399.765625
+          },
+          "result": "passed"
+        },
+        {
+          "id": "displaced-link-access",
+          "result": "passed"
+        },
+        {
+          "id": "image-and-link-under-topbar",
+          "result": "passed"
+        },
+        {
+          "id": "independent-copy-and-delete",
+          "result": "passed"
+        },
+        {
+          "id": "mixed-width-sort",
+          "result": "passed"
+        }
+      ],
+      "motion": {
+        "transitions": 8,
+        "correctFirstFrames": true,
+        "interruptedExit": "passed",
+        "keyboardAndEditing": "passed"
+      }
+    }
+  ],
+  "regression": {
+    "viewport": {
+      "width": 1440,
+      "height": 1000
+    },
+    "results": [
+      {
+        "name": "Local assets, eight sections, no horizontal overflow",
+        "result": "passed"
+      },
+      {
+        "name": "Menu is first; label hover exposes all item actions",
+        "result": "passed"
+      },
+      {
+        "name": "Menu copies independently and reorders horizontally with cancellation",
+        "result": "passed"
+      },
+      {
+        "name": "Menu wraps and sorts across rows; final item cannot be deleted",
+        "result": "passed"
+      },
+      {
+        "name": "Ordered card actions and closest target hover",
+        "result": "passed"
+      },
+      {
+        "name": "Safe bridge, toolbar interaction, and 180ms closing delay",
+        "result": "passed"
+      },
+      {
+        "name": "Native text editing retains caret and Enter/Escape behavior",
+        "result": "passed"
+      },
+      {
+        "name": "Empty content is still editable; rich input becomes plain text",
+        "result": "passed"
+      },
+      {
+        "name": "Button input commits on Enter and never navigates",
+        "result": "passed"
+      },
+      {
+        "name": "Copy latest content next to original; new copy edits independently",
+        "result": "passed"
+      },
+      {
+        "name": "Drag threshold and grid reorder in both directions across rows",
+        "result": "passed"
+      },
+      {
+        "name": "Immediate pointer release still resolves a directly hit sibling",
+        "result": "passed"
+      },
+      {
+        "name": "Escape, outside drop, and foreign container cancel reorder",
+        "result": "passed"
+      },
+      {
+        "name": "Separate image actions and link placement below the topbar",
+        "result": "passed"
+      },
+      {
+        "name": "Keyboard focus reveals item tools without editing text",
+        "result": "passed"
+      },
+      {
+        "name": "Exhibition reorder, last-item protection, and disabled handle",
+        "result": "passed"
+      },
+      {
+        "name": "Inline images and their repeatable parents have separate tools",
+        "result": "passed"
+      },
+      {
+        "name": "Slow top, side and diagonal paths retain the active card toolbar",
+        "result": "passed"
+      },
+      {
+        "name": "Hover dwell filters fast sweeps and cancels stale candidates",
+        "result": "passed"
+      },
+      {
+        "name": "Inline-image group copies independently, sorts, cancels and protects its last item",
+        "result": "passed"
+      },
+      {
+        "name": "Long text expands without horizontal overflow",
+        "result": "passed"
+      }
+    ],
+    "passed": 21,
+    "total": 21
+  },
+  "build": "passed",
+  "modelTests": 3
+}

@@ -98,8 +98,10 @@ export async function runHierarchicalToolsChecks() {
         const p = tool("study-1").getBoundingClientRect(),
           c = child.getBoundingClientRect();
         assert(
-          Math.abs(c.top - p.bottom - 6) < 1 && Math.abs(c.right - p.right) < 1,
-          "First visible frame is not stacked/right-aligned at zero padding",
+          Math.abs(c.top - p.top) < 1 &&
+            Math.abs(c.left + c.width / 2 - (anchor.left + anchor.width / 2)) <
+              1,
+          "First visible frame is not centered alongside parent tools at zero padding",
         );
         firstFrame ||= {
           parentTop: p.top,
@@ -147,14 +149,14 @@ export async function runHierarchicalToolsChecks() {
       result: "passed",
     });
 
-    // Reach the parent through the space between rows, then copy while image tools remain open.
+    // Reach the parent through the image, then copy while image tools remain open.
     const p = parent.getBoundingClientRect(),
       c = tool("study-1.image").getBoundingClientRect();
     at(c.left + 13, (p.bottom + c.top) / 2);
     await wait();
     assert(
       tool("study-1") === parent && tool("study-1.image"),
-      "Crossing the inter-panel gap lost tools",
+      "Crossing between panels lost tools",
     );
     const copy = button(parent, "Копировать элемент"),
       r = copy.getBoundingClientRect();
@@ -228,8 +230,8 @@ export async function runHierarchicalToolsChecks() {
     );
     assert(
       Math.abs(rects[1].top - rects[0].bottom - 6) < 1 &&
-        Math.abs(rects[2].top - rects[1].bottom - 6) < 1,
-      "Three levels did not stack under the editor bar on scroll",
+        Math.abs(rects[2].top - rects[1].top) < 1,
+      "Centered image and item tools did not share the row below the section on scroll",
     );
     checks.push({
       name: "Scroll recomputes a three-level stack below the fixed topbar",

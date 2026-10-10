@@ -379,9 +379,9 @@ export async function runChecks() {
       document.activeElement?.blur();
     }
   }
-  await test("Local assets, seven sections, no horizontal overflow", async () => {
+  await test("Local assets, eight sections, no horizontal overflow", async () => {
     await document.fonts.ready;
-    assert(all("[data-section]").length === 7, "Incorrect section count");
+    assert(all("[data-section]").length === 8, "Incorrect section count");
     assert(
       document.documentElement.scrollWidth <= innerWidth,
       "Horizontal overflow",
