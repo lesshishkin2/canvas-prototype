@@ -24,6 +24,7 @@ import {
 const EditorContext = createContext(null);
 export const useEditor = () => useContext(EditorContext);
 const TOP = 66;
+const TOOL_INSET = 8;
 
 export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
   const [active, setActive] = useState(null),
@@ -106,9 +107,32 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
         return;
       }
       const source = element?.closest("[data-editor-target]");
-      // A short bridge lets the pointer cross the gap above/below a link.
       const previous = activeRef.current;
       const panel = document.querySelector(".floating-tools");
+      // Join an inset panel to its owner's top/right edges. This only retains
+      // an already open panel; nested targets elsewhere still resolve normally.
+      if (
+        event.type === "pointermove" &&
+        (previous?.kind === "item" || previous?.kind === "image") &&
+        previous.placement !== "above" &&
+        previous.node.contains(source) &&
+        panel?.dataset.owner === previous.id &&
+        panel.style.visibility === "visible"
+      ) {
+        const owner = previous.node.getBoundingClientRect(),
+          tools = panel.getBoundingClientRect();
+        if (
+          event.clientX >= Math.max(owner.left, tools.left) &&
+          event.clientX <= Math.min(owner.right, tools.right + TOOL_INSET) &&
+          event.clientY >= Math.max(TOP, owner.top, tools.top - TOOL_INSET) &&
+          event.clientY <= Math.min(owner.bottom, tools.bottom)
+        ) {
+          clearTimeout(hideTimer.current);
+          hideTimer.current = null;
+          return;
+        }
+      }
+      // A short bridge lets the pointer cross the gap above/below a link.
       if (
         event.type === "pointermove" &&
         (previous?.kind === "link" || previous?.placement === "above") &&
@@ -302,12 +326,12 @@ function FloatingTools({ target, counts, onDuplicate, onRemove, hidden }) {
         top = Math.max(TOP, r.top);
         if (top + 40 > r.bottom) return setPosition(null);
       } else if (target.kind === "link" || target.placement === "above") {
-        left = r.right - p.width - 8;
+        left = r.right - p.width - TOOL_INSET;
         top = r.top - p.height - 7;
         if (top < TOP + 6) top = r.bottom + 7;
       } else {
-        left = r.right - p.width - 8;
-        top = Math.max(TOP + 6, r.top + 8);
+        left = r.right - p.width - TOOL_INSET;
+        top = Math.max(TOP + 6, r.top + TOOL_INSET);
       }
       left = Math.max(8, Math.min(left, innerWidth - p.width - 12));
       top = Math.max(TOP + 4, Math.min(top, innerHeight - p.height - 8));

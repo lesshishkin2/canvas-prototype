@@ -127,6 +127,95 @@ async function drag(
   assert(!query(".drag-preview"), "Drag preview not cleaned up");
   return indicated;
 }
+export async function checkInsetToolbarBridge() {
+  const card = query('[data-item="study-1"]');
+  card.scrollIntoView({ block: "center" });
+  await wait();
+  const r = card.getBoundingClientRect();
+  const move = async (x, y) => {
+    const hit = document.elementFromPoint(x, y);
+    assert(hit, "Pointer path left the viewport");
+    pointer(hit, "pointermove", x, y);
+    await wait(25);
+  };
+  for (const direction of ["top", "right", "diagonal"]) {
+    await move(r.left + r.width / 2, r.top + 80);
+    assert(
+      toolbar()?.dataset.owner === "study-1.image",
+      "Direct image hover was blocked",
+    );
+    await move(r.right - 3, r.top + 3);
+    assert(
+      toolbar()?.dataset.owner === "study-1",
+      "Card edge did not open its tools",
+    );
+    const p = toolbar().getBoundingClientRect();
+    const start =
+      direction === "top"
+        ? { x: p.left + 13, y: r.top + 3 }
+        : direction === "right"
+          ? { x: r.right - 3, y: p.top + 13 }
+          : { x: r.right - 3, y: r.top + 3 };
+    const end =
+      direction === "top"
+        ? { x: p.left + 13, y: p.top + 13 }
+        : { x: p.right - 13, y: p.top + 13 };
+    await move(start.x, start.y);
+    for (let step = 1; step <= 12; step++) {
+      await move(
+        start.x + ((end.x - start.x) * step) / 12,
+        start.y + ((end.y - start.y) * step) / 12,
+      );
+      assert(
+        toolbar()?.dataset.owner === "study-1",
+        `${direction} approach switched to nested image tools`,
+      );
+    }
+    await wait(220);
+    assert(
+      toolbar()?.dataset.owner === "study-1",
+      "Panel protection expired on a timer",
+    );
+    await move(p.left + 13, p.bottom + 4);
+    assert(
+      toolbar()?.dataset.owner === "study-1.image",
+      "Leaving the protected gap did not reveal the image immediately",
+    );
+  }
+  // Reach a real button through the narrow top gap, then exercise the action.
+  await move(r.right - 3, r.top + 3);
+  const p = toolbar().getBoundingClientRect();
+  await move(p.left + 13, p.top - 1);
+  await wait(220);
+  assert(
+    toolbar()?.dataset.owner === "study-1",
+    "Slow movement in the image-covered gap lost the panel",
+  );
+  await move(p.left + 13, p.top + 13);
+  const count = order("studies").length;
+  document
+    .elementFromPoint(p.left + 13, p.top + 13)
+    .closest("button")
+    .click();
+  await wait();
+  assert(
+    order("studies").length === count + 1,
+    "Copy button was unreachable through the gap",
+  );
+  const copy = order("studies")[order("studies").indexOf("study-1") + 1];
+  await hover(query(`[data-item="${copy}"]`));
+  await action("Удалить элемент");
+  await hover(field("study-1.cta"));
+  assert(
+    toolbar()?.dataset.owner === "study-1.cta" && labels().length === 1,
+    "Card protection swallowed nested button tools",
+  );
+  field("study-1.title").focus();
+  await wait();
+  assert(!toolbar(), "Focus could not enter text editing");
+  field("study-1.title").blur();
+}
+
 export async function runChecks() {
   const results = [];
   async function test(name, fn) {
@@ -585,6 +674,10 @@ export async function runChecks() {
     await hover(card);
     assert(labels().length === 3, "Parent panel did not return after editing");
   });
+  await test(
+    "Slow top, side and diagonal paths retain the active card toolbar",
+    checkInsetToolbarBridge,
+  );
   await test("Inline-image group copies independently, sorts, cancels and protects its last item", async () => {
     const foreign = order("works").join();
     await hover(query('[data-item="study-1"]'));

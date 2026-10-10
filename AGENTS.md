@@ -20,6 +20,8 @@ The user is testing tight image spacing in these cards: keep only 6 px between t
 
 Each studies card also contains a button with an editable label and its own link-edit demo toolbar. It is a nested link target; the parent card still has only duplicate/delete/drag.
 
+An already open inset item/image toolbar owns a protective hover bridge across its 8 px top and right gaps. Retain it there even over a nested image, without adding a switching delay or a DOM overlay that intercepts clicks. Outside that bridge, resolve the closest target immediately; direct image hover and text focus retain their normal behavior. Test actual slow pointer paths using hit-testing, not just isolated hover states.
+
 Run the local server yourself and open the preview in the browser available to this environment. Do not give the user server-start instructions when you can run it.
 
 Before making substantial visual changes, use the Product Design plugin's `get-context` skill when the visual source is unclear or no longer matches the current goal. When the user gives durable prototype-specific design feedback, preferences, or decisions, record them in `AGENTS.md`.
