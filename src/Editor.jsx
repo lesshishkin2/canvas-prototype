@@ -10,17 +10,22 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import {
-  ChevronLeft,
-  ChevronDown,
-  ChevronUp,
-  Settings,
-  Palette,
-  Eye,
-  Plus,
-  Link2,
-  Pencil,
-  ArrowUpRight,
-} from "lucide-react";
+  IconArrowLeft,
+  IconChevronDown,
+  IconArrowUp,
+  IconArrowDown,
+  IconAdjustmentsHorizontal,
+  IconPalette,
+  IconEye,
+  IconPlus,
+  IconLink,
+  IconPhotoUp,
+  IconPhotoEdit,
+  IconCopyPlus,
+  IconTrash,
+  IconArrowsMove,
+  IconArrowUpRight,
+} from "@tabler/icons-react";
 import { placeToolbar, TOP, TOOL_INSET } from "./toolbar-layout";
 
 const EditorContext = createContext(null);
@@ -461,15 +466,6 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
   );
 }
 
-function AssetIcon({ name }) {
-  return (
-    <img
-      src={`/assets/icons/${["trash", "grip"].includes(name) ? `${name}-active` : name}.svg`}
-      alt=""
-      draggable="false"
-    />
-  );
-}
 export function ToolButton({
   label,
   disabled = false,
@@ -580,10 +576,10 @@ function FloatingTools({
   const imgTools = (
     <div className="tool-group">
       <ToolButton label="Заменить изображение · демо">
-        <AssetIcon name="replace" />
+        <IconPhotoUp aria-hidden="true" />
       </ToolButton>
       <ToolButton label="Редактировать изображение · демо">
-        <Pencil />
+        <IconPhotoEdit aria-hidden="true" />
       </ToolButton>
     </div>
   );
@@ -625,23 +621,23 @@ function FloatingTools({
       {isSection ? (
         <>
           <ToolButton label="Настройки секции · демо">
-            <Settings />
+            <IconAdjustmentsHorizontal aria-hidden="true" />
           </ToolButton>
           {target.hasImage && (
             <div className="section-background-tools">{imgTools}</div>
           )}
           <div className="section-tools-end">
             <ToolButton label="Секция выше · демо">
-              <ChevronUp />
+              <IconArrowUp aria-hidden="true" />
             </ToolButton>
             <ToolButton label="Секция ниже · демо">
-              <ChevronDown />
+              <IconArrowDown aria-hidden="true" />
             </ToolButton>
             <ToolButton label="Видимость секции · демо">
-              <Eye />
+              <IconEye aria-hidden="true" />
             </ToolButton>
             <ToolButton label="Удалить секцию · демо">
-              <AssetIcon name="trash" />
+              <IconTrash aria-hidden="true" />
             </ToolButton>
           </div>
         </>
@@ -657,7 +653,7 @@ function FloatingTools({
                     : "Редактировать ссылку · демо"
                 }
               >
-                <Link2 />
+                <IconLink aria-hidden="true" />
               </ToolButton>
             </div>
           )}
@@ -665,7 +661,7 @@ function FloatingTools({
             <>
               <div className="tool-group">
                 <ToolButton label="Копировать элемент" onClick={onDuplicate}>
-                  <AssetIcon name="copy" />
+                  <IconCopyPlus aria-hidden="true" />
                 </ToolButton>
                 <ToolButton
                   label={
@@ -676,7 +672,7 @@ function FloatingTools({
                   disabled={single}
                   onClick={onRemove}
                 >
-                  <AssetIcon name="trash" />
+                  <IconTrash aria-hidden="true" />
                 </ToolButton>
               </div>
               <div className="tool-group drag-group">
@@ -692,7 +688,7 @@ function FloatingTools({
                   className="tool-button drag-handle"
                   onClick={undefined}
                 >
-                  <AssetIcon name="grip" />
+                  <IconArrowsMove aria-hidden="true" />
                 </ToolButton>
               </div>
             </>
@@ -791,7 +787,7 @@ export function CanvasLink({
         kind="link"
         singleLine
       />
-      {arrow && <ArrowUpRight aria-hidden="true" />}
+      {arrow && <IconArrowUpRight aria-hidden="true" />}
     </div>
   );
 }
@@ -806,13 +802,13 @@ export function Section({ id, hasImage = false, className = "", children }) {
     >
       <div className="section-divider section-divider-start">
         <button aria-label="Добавить секцию · демо" data-editor-toolbar="true">
-          <Plus />
+          <IconPlus aria-hidden="true" />
         </button>
       </div>
       {children}
       <div className="section-divider section-divider-end">
         <button aria-label="Добавить секцию · демо" data-editor-toolbar="true">
-          <Plus />
+          <IconPlus aria-hidden="true" />
         </button>
       </div>
     </section>
@@ -827,13 +823,13 @@ export function Topbar() {
           title="Назад · демо"
           aria-label="Назад · демо"
         >
-          <ChevronLeft size={18} />
+          <IconArrowLeft size={18} aria-hidden="true" />
         </button>
         <button className="page-switch" title="Переключение страниц · демо">
           <span>
             Page: <strong>Main page</strong>
           </span>
-          <ChevronDown size={16} />
+          <IconChevronDown size={16} aria-hidden="true" />
         </button>
       </div>
       <div className="topbar-right">
@@ -842,17 +838,17 @@ export function Topbar() {
           title="Настройки страницы · демо"
           aria-label="Настройки страницы · демо"
         >
-          <Settings size={20} />
+          <IconAdjustmentsHorizontal size={20} aria-hidden="true" />
         </button>
         <button
           className="bare-button"
           title="Настройки темы · демо"
           aria-label="Настройки темы · демо"
         >
-          <Palette size={20} />
+          <IconPalette size={20} aria-hidden="true" />
         </button>
         <button className="preview-button" title="Предпросмотр · демо">
-          <Eye size={19} />
+          <IconEye size={19} aria-hidden="true" />
           Preview
         </button>
         <button

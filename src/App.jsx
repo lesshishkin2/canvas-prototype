@@ -18,7 +18,7 @@ import {
   sortableKeyboardCoordinates,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ArrowUpRight } from "lucide-react";
+import { IconArrowUpRight } from "@tabler/icons-react";
 import {
   EditorProvider,
   Editable,
@@ -102,7 +102,7 @@ function ItemView({ item, list, onChange, ghost = false }) {
   const cta = ghost ? (
     <div className={`canvas-link ${ctaClass}`}>
       <span>{item.cta}</span>
-      <ArrowUpRight />
+      <IconArrowUpRight />
     </div>
   ) : (
     <CanvasLink
@@ -517,7 +517,7 @@ export function App() {
               {text("exhibitions.eyebrow", "eyebrow")}
               {text("exhibitions.title", "section-title", "h2")}
             </div>
-            <ArrowUpRight className="program-mark" aria-hidden="true" />
+            <IconArrowUpRight className="program-mark" aria-hidden="true" />
           </div>
           <Repeater
             list="exhibitions"
