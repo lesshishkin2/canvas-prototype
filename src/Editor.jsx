@@ -302,7 +302,7 @@ function FloatingTools({ target, counts, onDuplicate, onRemove, hidden }) {
         top = Math.max(TOP, r.top);
         if (top + 40 > r.bottom) return setPosition(null);
       } else if (target.kind === "link" || target.placement === "above") {
-        left = r.left;
+        left = r.right - p.width - 8;
         top = r.top - p.height - 7;
         if (top < TOP + 6) top = r.bottom + 7;
       } else {

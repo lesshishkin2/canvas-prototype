@@ -183,8 +183,10 @@ export async function runChecks() {
     const item = query('[data-item="menu-1"]').getBoundingClientRect(),
       panel = toolbar().getBoundingClientRect();
     assert(
-      panel.top >= 66 && panel.bottom <= item.top,
-      "Menu toolbar covers label or topbar",
+      panel.top >= 66 &&
+        panel.bottom <= item.top &&
+        Math.abs(panel.right - (item.right - 8)) < 1,
+      "Menu toolbar is not above the right edge or covers the topbar",
     );
     pointer(
       query('[data-section="menu"]'),
@@ -494,8 +496,11 @@ export async function runChecks() {
     const r = toolbar().getBoundingClientRect(),
       a = el.getBoundingClientRect();
     assert(
-      r.top >= a.bottom && r.left >= 0 && r.right <= innerWidth,
-      "Link toolbar not flipped/clamped",
+      r.top >= a.bottom &&
+        r.left >= 0 &&
+        r.right <= innerWidth &&
+        Math.abs(r.right - (a.right - 8)) < 1,
+      "Link toolbar not right-aligned/flipped/clamped",
     );
   });
   await test("Keyboard focus reveals item tools without editing text", async () => {
