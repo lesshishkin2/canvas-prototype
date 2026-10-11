@@ -97,6 +97,7 @@ async function finish(point, cancel = false, inputMode = "mouse") {
   pointer(document, "pointerup", point.x, point.y, 0, inputMode);
   await wait();
   assert(!q(".drag-preview"), "Drag overlay leaked");
+  assert(!q(".sort-insertion-marker"), "Insertion marker leaked");
 }
 async function sampleMove(point, node) {
   const before = node.getBoundingClientRect();
@@ -454,5 +455,123 @@ export async function runUnifiedEdgeSortChecks(inputMode = "mouse") {
         await finish(end, true, inputMode);
     }
   }
+  return { inputMode, width: innerWidth, results };
+}
+
+// A drop target must not look like a second focused/selected item.
+export async function runDragFeedbackChecks(inputMode = "mouse") {
+  await document.fonts.ready;
+  const results = [];
+  for (const list of ["menu", "works", "edges", "exhibitions"]) {
+    const ids = order(list);
+    for (const after of [true, false]) {
+      const from = ids[after ? 0 : 1],
+        to = ids[after ? 1 : 0];
+      const start = await begin(from, inputMode);
+      const source = item(from).getBoundingClientRect();
+      if (list !== "menu") {
+        const destination = item(to);
+        scrollTo(
+          0,
+          scrollY +
+            destination.parentElement.getBoundingClientRect().top +
+            destination.offsetTop -
+            280,
+        );
+        await wait(100);
+      }
+      const destination = item(to),
+        parent = destination.parentElement.getBoundingClientRect();
+      const target = {
+        left: parent.left + destination.offsetLeft,
+        top: parent.top + destination.offsetTop,
+        width: destination.offsetWidth,
+        height: destination.offsetHeight,
+      };
+      const end = {
+        x: Math.max(
+          8,
+          Math.min(
+            innerWidth - 8,
+            target.left +
+              target.width / 2 +
+              (start.x < source.left || start.x > source.right
+                ? start.x - (source.left + source.width / 2)
+                : 0),
+          ),
+        ),
+        y:
+          target.top +
+          Math.min(100, target.height / 2) +
+          (start.y < source.top || start.y > source.bottom
+            ? start.y - (source.top + source.height / 2)
+            : 0),
+      };
+      try {
+        pointer(document, "pointermove", end.x, end.y, 1, inputMode);
+        await wait();
+        assert(
+          q(".drop-target") === item(to),
+          `${list} ${after ? "forward" : "backward"}: missed target (${q(".drop-target")?.dataset.item})`,
+        );
+        const marker = q(".sort-insertion-marker");
+        assert(marker, `${list}: missing insertion indicator`);
+        assert(
+          getComputedStyle(marker).pointerEvents === "none",
+          "Marker intercepts input",
+        );
+        for (const id of ids) {
+          const style = getComputedStyle(item(id));
+          assert(
+            style.outlineStyle === "none" ||
+              parseFloat(style.outlineWidth) === 0,
+            `${list}: ${id} has an extra selection outline`,
+          );
+        }
+        assert(
+          getComputedStyle(q(".drag-preview")).outlineStyle === "solid",
+          "Dragged copy lost its own outline",
+        );
+        const r = item(to).getBoundingClientRect(),
+          m = marker.getBoundingClientRect();
+        const vertical =
+          list === "exhibitions" || (innerWidth <= 767 && list !== "menu");
+        const expected = vertical
+          ? after
+            ? r.bottom + 3
+            : r.top - 6
+          : after
+            ? r.right + 3
+            : r.left - 6;
+        assert(
+          Math.abs((vertical ? m.top : m.left) - expected) < 0.5,
+          `${list}: insertion boundary does not follow its displaced neighbour`,
+        );
+        const outside = { x: 2, y: 20 };
+        pointer(document, "pointermove", outside.x, outside.y, 1, inputMode);
+        await wait();
+        assert(
+          !q(".sort-insertion-marker"),
+          `${list}: marker persists outside the list`,
+        );
+        results.push({ list, after, passed: true });
+      } finally {
+        await finish(end, true, inputMode);
+      }
+      assert(
+        order(list).join() === ids.join(),
+        `${list}: cancel changed order`,
+      );
+    }
+  }
+  // Do not remove native keyboard focus styling to fix a drag-only affordance.
+  const node = item(order("menu")[0]);
+  node.focus({ preventScroll: true });
+  assert(
+    node.matches(":focus-visible") &&
+      getComputedStyle(node).outlineStyle === "solid",
+    "Keyboard focus outline is missing after drag",
+  );
+  node.blur();
   return { inputMode, width: innerWidth, results };
 }
