@@ -10,12 +10,9 @@ import {
 } from "react";
 import { createPortal } from "react-dom";
 import {
-  IconArrowLeft,
-  IconChevronDown,
   IconArrowUp,
   IconArrowDown,
   IconAdjustmentsHorizontal,
-  IconPalette,
   IconEye,
   IconPlus,
   IconLink,
@@ -26,6 +23,7 @@ import {
   IconArrowsMove,
   IconArrowUpRight,
 } from "@tabler/icons-react";
+import { ChevronLeft, ChevronDown, Settings, Palette, Eye } from "lucide-react";
 import { placeToolbar, TOP, TOOL_INSET } from "./toolbar-layout";
 import { Tooltips } from "./Tooltip";
 
@@ -836,13 +834,13 @@ export function Topbar() {
           title="Назад · демо"
           aria-label="Назад · демо"
         >
-          <IconArrowLeft size={18} aria-hidden="true" />
+          <ChevronLeft size={18} aria-hidden="true" />
         </button>
         <button className="page-switch" title="Переключение страниц · демо">
           <span>
             Page: <strong>Main page</strong>
           </span>
-          <IconChevronDown size={16} aria-hidden="true" />
+          <ChevronDown size={16} aria-hidden="true" />
         </button>
       </div>
       <div className="topbar-right">
@@ -851,17 +849,17 @@ export function Topbar() {
           title="Настройки страницы · демо"
           aria-label="Настройки страницы · демо"
         >
-          <IconAdjustmentsHorizontal size={20} aria-hidden="true" />
+          <Settings size={20} aria-hidden="true" />
         </button>
         <button
           className="bare-button"
           title="Настройки темы · демо"
           aria-label="Настройки темы · демо"
         >
-          <IconPalette size={20} aria-hidden="true" />
+          <Palette size={20} aria-hidden="true" />
         </button>
         <button className="preview-button" title="Предпросмотр · демо">
-          <IconEye size={19} aria-hidden="true" />
+          <Eye size={19} aria-hidden="true" />
           Preview
         </button>
         <button

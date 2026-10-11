@@ -83,10 +83,12 @@ await (await import("/tests/edge-case-checks.js")).runEdgeCaseChecks();
 
 ## Источники
 
-Исходная компоновка оболочки: редактор Site Builder и [Figma, node 25674:63938](https://www.figma.com/design/b2HwNFkDTvplokDelJjROK/is.art?node-id=25674-63938). Оформление инструментов обновлено: все иконки — [Tabler Icons](https://tabler.io/icons) (`@tabler/icons-react`, MIT), цвета — пресеты [Gray из is.art](https://www.figma.com/design/b2HwNFkDTvplokDelJjROK/is.art?node-id=11770-27581). Прежние SVG удалены из приложения.
+Исходная компоновка оболочки: редактор Site Builder и [Figma, node 25674:63938](https://www.figma.com/design/b2HwNFkDTvplokDelJjROK/is.art?node-id=25674-63938). Оформление инструментов обновлено: иконки панелей canvas — [Tabler Icons](https://tabler.io/icons) (`@tabler/icons-react`, MIT), цвета — пресеты [Gray из is.art](https://www.figma.com/design/b2HwNFkDTvplokDelJjROK/is.art?node-id=11770-27581). Прежние SVG удалены из приложения.
 
 Редактирование изображения обозначено `PhotoEdit` (рамка картинки с карандашом), замена — `PhotoUp`, копирование — `CopyPlus`, перемещение — `ArrowsMove`. Иконки 16 px внутри кнопок 28 × 28 px; порядок действий и поведение не изменены. Основной фон — Gray/800, hover — Gray/700, нажатие — Gray/900, иконки — Gray/50, границы — Gray/600, недоступные иконки — Gray/500.
 
 Фотографии загружены локально из тех же Unsplash-изображений, которые использовал предоставленный редактор: `photo-1579783902614-a3fb3927b6a5`, `photo-1541961017774-22349e4a1262`, `photo-1549289524-06cf8837ace5`, `photo-1531913764164-f85c52e6e654`, `photo-1460661419201-fd4cecdf8a8b`, `photo-1578321272176-b7bbc0679853`.
 
 Имена художников, названия работ и программа — демонстрационный контент.
+
+Верхний фиксированный бар сохраняет исходный дизайн: иконки Lucide, белый фон и фиолетовая кнопка Save Changes. Изменения оформления панелей canvas к нему не применяются.

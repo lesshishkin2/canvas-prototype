@@ -61,10 +61,10 @@ svg {
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  background: var(--gray-25);
-  border-bottom: 1px solid var(--gray-200);
+  background: #fff;
+  border-bottom: 1px solid #dedfe3;
   font-size: 14px;
-  color: var(--gray-600);
+  color: #505662;
   gap: 24px;
 }
 .topbar-left,
@@ -85,8 +85,8 @@ svg {
   align-items: center;
   justify-content: center;
   border-radius: 8px;
-  border: 1px solid var(--gray-300);
-  background: var(--gray-25);
+  border: 1px solid #d9dce1;
+  background: #fff;
   color: inherit;
   box-shadow: 0 1px 2px #18202d0a;
 }
@@ -99,7 +99,7 @@ svg {
 }
 .page-switch strong {
   font-weight: 600;
-  color: var(--gray-900);
+  color: #282e37;
 }
 .editor-topbar .bare-button {
   border: 0;
@@ -113,28 +113,15 @@ svg {
   font-weight: 600;
 }
 .editor-topbar .save-button {
-  background: var(--gray-800);
-  color: var(--gray-50);
-  border-color: var(--gray-700);
+  background: var(--purple);
+  color: #fff;
+  border-color: var(--purple);
   font-weight: 650;
   padding: 0 16px;
 }
 .editor-topbar button:hover {
-  background: var(--gray-100);
+  filter: brightness(0.97);
 }
-.editor-topbar .save-button:hover {
-  background: var(--gray-700);
-}
-.editor-topbar button:active {
-  background: var(--gray-200);
-}
-.editor-topbar .save-button:active {
-  background: var(--gray-900);
-}
-.editor-topbar svg {
-  stroke-width: 1.75;
-}
-.editor-topbar button:focus-visible,
 .tool-button:focus-visible {
   outline-color: var(--gray-400);
 }
