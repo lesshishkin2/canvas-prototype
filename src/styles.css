@@ -111,7 +111,12 @@ svg {
 .preview-button {
   padding: 0 16px;
   gap: 16px;
+}
+.preview-button,
+.section-tools .section-edit-button {
+  font-size: 14px;
   font-weight: 600;
+  line-height: normal;
 }
 .editor-topbar .save-button {
   background: var(--purple);
@@ -1051,8 +1056,6 @@ svg {
   width: auto;
   padding: 0 10px;
   gap: 8px;
-  font-size: 15px;
-  line-height: 1;
   white-space: nowrap;
 }
 .section-tools[data-positioned="true"]:not([data-exiting="true"]) .tool-button {
