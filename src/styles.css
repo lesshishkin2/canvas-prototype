@@ -1021,13 +1021,14 @@ body[data-editor-mode="dragging"] [data-kind="image"]::after {
 .floating-tools {
   --tool-radius: 5px;
   --tool-size: 36px;
+  --tool-group-gap: 8px;
   --tools-fade-duration: 125ms;
   --tools-ease-out: var(--ease-out);
   position: absolute;
   z-index: 800;
   display: flex;
   align-items: center;
-  gap: 3px;
+  gap: var(--tool-group-gap);
   width: max-content;
   max-width: calc(100vw - 20px);
   color: var(--gray-50);
@@ -1106,10 +1107,6 @@ body[data-editor-mode="dragging"] [data-kind="image"]::after {
   color: var(--gray-500);
   cursor: not-allowed;
 }
-/* Separate the move handle with breathing room, not a drawn divider. */
-.drag-group {
-  margin-left: 5px;
-}
 .drag-handle {
   cursor: grab;
   touch-action: none;
@@ -1157,7 +1154,7 @@ body[data-editor-mode="dragging"] [data-kind="image"]::after {
   min-height: calc(var(--tool-size) + 12px);
   flex-wrap: wrap;
   padding: 6px 8px;
-  gap: 8px;
+  gap: var(--tool-group-gap);
   filter: none;
   max-width: none;
   /* Only the visible controls intercept the canvas, never the empty strip. */
@@ -1193,7 +1190,7 @@ body[data-editor-mode="dragging"] [data-kind="image"]::after {
 .section-tools-end {
   margin-left: auto;
   display: flex;
-  gap: 8px;
+  gap: var(--tool-group-gap);
 }
 .section-background-tools {
   display: flex;
