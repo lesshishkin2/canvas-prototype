@@ -73,10 +73,10 @@ function checkTools() {
     );
     for (const button of visible[i].querySelectorAll(".tool-button"))
       assert(
-        button.getBoundingClientRect().height === 32 &&
+        button.getBoundingClientRect().height === 36 &&
           (button.classList.contains("section-edit-button") ||
-            button.getBoundingClientRect().width === 32),
-        "Canvas control must be 32 × 32",
+            button.getBoundingClientRect().width === 36),
+        "Canvas control must be 36 × 36",
       );
     for (let j = i + 1; j < visible.length; j++)
       assert(!controlsOverlap(visible[i], visible[j]), "Touch panels overlap");
