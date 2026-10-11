@@ -72,12 +72,6 @@ const listStyles = {
     label: "Edge case",
     variants: true,
   },
-  edgeSamples: {
-    item: "edge-card",
-    container: "edge-grid edge-samples",
-    label: "Edge case",
-    variants: true,
-  },
 };
 
 const itemClass = (list, item) =>
@@ -305,7 +299,9 @@ function SortableItem({ item, list, count, onChange, over, active }) {
       data-item={item.id}
       data-image={!!listStyles[list].backgroundImage && !!item.image}
       data-link={!!item.link}
-      data-tool-placement={list === "menu" ? "above" : undefined}
+      data-tool-placement={
+        list === "menu" || item.variant === "compact" ? "above" : undefined
+      }
       tabIndex={0}
       aria-label={`${listStyles[list].label}: ${item.title}`}
     >
@@ -569,7 +565,6 @@ export function App() {
         studies: lists.studies.length,
         exhibitions: lists.exhibitions.length,
         edges: lists.edges.length,
-        edgeSamples: lists.edgeSamples.length,
       }}
     >
       <Topbar />
@@ -675,12 +670,6 @@ export function App() {
             list="edges"
             items={lists.edges}
             onChange={changeItem("edges")}
-            onReorder={reorder}
-          />
-          <Repeater
-            list="edgeSamples"
-            items={lists.edgeSamples}
-            onChange={changeItem("edgeSamples")}
             onReorder={reorder}
           />
         </Section>

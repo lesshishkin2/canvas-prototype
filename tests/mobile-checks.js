@@ -222,10 +222,10 @@ export async function runMobileChecks() {
     { click: true },
   );
   await wait(350);
-  const ids = order("edgeSamples"),
+  const ids = order("edges"),
     copy = ids[ids.indexOf("edge-empty") + 1];
   assert(
-    ids.length === 8 && field(copy + ".cta").textContent === "Привет, мир",
+    ids.length === 11 && field(copy + ".cta").textContent === "Привет, мир",
     "Copy lost current text",
   );
   assert(!panels().length, "Copy leaves hot actions");
@@ -245,7 +245,7 @@ export async function runMobileChecks() {
   );
   await wait(200);
   assert(
-    order("edgeSamples").length === 7 && !panels().length,
+    order("edges").length === 10 && !panels().length,
     "Deletion or suppression failed",
   );
   results.push("text editing, independent copy, deletion and suppression");

@@ -30,8 +30,23 @@ async function begin(id, inputMode = "mouse") {
   const node = item(id);
   document.activeElement?.blur();
   pointer(q(".editor-topbar"), "pointermove", 400, 20);
+  // Previous sorting/cancellation may still be animating. Use the settled
+  // layout before scrolling to and hovering the next grip.
+  for (let attempt = 0; attempt < 40; attempt++) {
+    await frame();
+    const value = getComputedStyle(node).transform;
+    const matrix = new DOMMatrix(value === "none" ? undefined : value);
+    if (Math.abs(matrix.e) < 0.5 && Math.abs(matrix.f) < 0.5) break;
+  }
   if (node.dataset.list === "menu") window.scrollTo(0, 0);
-  else window.scrollTo(0, scrollY + node.getBoundingClientRect().top - 280);
+  else
+    window.scrollTo(
+      0,
+      scrollY +
+        node.parentElement.getBoundingClientRect().top +
+        node.offsetTop -
+        280,
+    );
   await wait(100);
   const r = node.getBoundingClientRect();
   if (inputMode === "touch") {
@@ -39,6 +54,24 @@ async function begin(id, inputMode = "mouse") {
     pointer(node, "pointerup", r.left + 3, r.top + 3, 0, inputMode);
   } else pointer(node, "pointermove", r.left + 3, r.top + 3);
   await wait();
+  // An exiting/re-entering portal can exist before its geometry is ready.
+  // A real user can only grab the visible, positioned control.
+  for (let attempt = 0; attempt < 30; attempt++) {
+    const tools = panel(id);
+    if (
+      tools?.dataset.positioned === "true" &&
+      tools.style.visibility === "visible" &&
+      !tools.inert
+    )
+      break;
+    await wait(50);
+  }
+  assert(
+    panel(id)?.dataset.positioned === "true" &&
+      panel(id)?.style.visibility === "visible" &&
+      !panel(id)?.inert,
+    `Handle is not visible for ${id}`,
+  );
   const handle = panel(id)?.querySelector(".drag-handle");
   assert(handle, `Missing handle for ${id}`);
   const h = handle.getBoundingClientRect();
@@ -310,4 +343,116 @@ export async function runSortSizeChecks({
     }
   }
   return { viewport: { width: innerWidth, height: innerHeight }, results };
+}
+
+// Every edge-case card shares a drop range, including the old lower subgroup.
+export async function runUnifiedEdgeSortChecks(inputMode = "mouse") {
+  await document.fonts.ready;
+  const containers = q('[data-section="edges"]').querySelectorAll(
+    "[data-list-container]",
+  );
+  assert(
+    containers.length === 1 && order("edges").length === 10,
+    "Edge cases are still split into separate lists",
+  );
+  const results = [];
+  for (const [from, to, cancel] of [
+    ["edge-narrow", "edge-tiny", true],
+    ["edge-narrow", "edge-tiny", false],
+    ["edge-compact", "edge-wide", false],
+    ["edge-wide", "edge-long", false],
+    ["edge-tiny", "study-1", false],
+  ]) {
+    const before = order("edges"),
+      sourceNode = item(from);
+    const fields = [...sourceNode.querySelectorAll("[data-field]")].map(
+      (n) => n.textContent,
+    );
+    const start = await begin(from, inputMode),
+      source = sourceNode.getBoundingClientRect();
+    const offset = {
+      x:
+        start.x < source.left || start.x > source.right
+          ? source.left + source.width / 2 - start.x
+          : 0,
+      y:
+        start.y < source.top || start.y > source.bottom
+          ? source.top + source.height / 2 - start.y
+          : 0,
+    };
+    const destination = item(to),
+      parent = destination.parentElement;
+    scrollTo(
+      0,
+      scrollY +
+        parent.getBoundingClientRect().top +
+        destination.offsetTop -
+        260,
+    );
+    await wait(100);
+    const bounds = parent.getBoundingClientRect();
+    const end = {
+      x: Math.max(
+        8,
+        Math.min(
+          innerWidth - 8,
+          bounds.left +
+            destination.offsetLeft +
+            destination.offsetWidth / 2 -
+            offset.x,
+        ),
+      ),
+      y:
+        bounds.top +
+        destination.offsetTop +
+        Math.min(70, destination.offsetHeight / 2) -
+        offset.y,
+    };
+    try {
+      pointer(document, "pointermove", end.x, end.y, 1, inputMode);
+      await wait();
+      if (before.includes(to))
+        assert(
+          q(".drop-target")?.dataset.item === to,
+          `Missed ${to} across rows (over: ${q(".drop-target")?.dataset.item})`,
+        );
+      await finish(end, cancel, inputMode);
+      const expected = [...before];
+      if (!cancel && before.includes(to))
+        expected.splice(
+          before.indexOf(to),
+          0,
+          expected.splice(before.indexOf(from), 1)[0],
+        );
+      assert(
+        order("edges").join() === expected.join(),
+        `Incorrect result for ${from} → ${to}`,
+      );
+      assert(item(from) === sourceNode, "Reorder remounted the card");
+      assert(
+        JSON.stringify(
+          [...sourceNode.querySelectorAll("[data-field]")].map(
+            (n) => n.textContent,
+          ),
+        ) === JSON.stringify(fields),
+        "Reorder changed editable content",
+      );
+      assert(
+        Math.abs(item("edge-narrow").getBoundingClientRect().width - 180) < 0.5,
+        "Narrow card lost its width",
+      );
+      assert(
+        Math.abs(
+          q('[data-editor-target="edge-tiny.image"]').getBoundingClientRect()
+            .width - 32,
+        ) < 0.5,
+        "Tiny image lost its width",
+      );
+      results.push({ from, to, cancel, passed: true });
+    } finally {
+      if (document.body.dataset.editorMode === "dragging")
+        await finish(end, true, inputMode);
+    }
+  }
+  return { inputMode, width: innerWidth, results };
 }
