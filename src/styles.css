@@ -463,6 +463,69 @@ svg {
   width: 15px;
   height: 15px;
 }
+.duets {
+  background: #e8e4d9;
+  color: var(--ink);
+}
+.duet-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 20px;
+}
+.artwork-card.duet-card {
+  min-height: 380px;
+  padding: 20px;
+}
+.duet-card .card-copy {
+  margin-top: 120px;
+}
+.duet-card .card-title {
+  font-size: clamp(30px, 2.8vw, 42px);
+}
+.duet-card .card-cta {
+  min-width: 0;
+  max-width: 100%;
+}
+.duet-card .editable[data-empty] {
+  min-width: 1ch;
+}
+@media (max-width: 1199px) {
+  .duet-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+}
+@media (max-width: 767px) {
+  .duet-grid {
+    gap: 12px;
+  }
+  .artwork-card.duet-card {
+    min-height: clamp(260px, 78vw, 340px);
+    padding: 12px;
+  }
+  .duet-card .card-copy {
+    margin-top: 96px;
+  }
+  .duet-card .card-title {
+    font-size: clamp(26px, 7vw, 32px);
+    margin: 10px 0 18px;
+  }
+  .duet-card .card-meta {
+    font-size: 10px;
+    letter-spacing: 0.04em;
+  }
+  .duet-card .card-cta {
+    width: 100%;
+    padding: 8px;
+    gap: 8px;
+    font-size: 14px;
+  }
+  .duet-card .card-cta svg {
+    flex-shrink: 0;
+    width: 14px;
+    height: 14px;
+  }
+}
 .studies {
   background: #e7e6dc;
   color: var(--ink);

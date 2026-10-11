@@ -49,6 +49,13 @@ const listStyles = {
     label: "Artwork",
     backgroundImage: true,
   },
+  duets: {
+    item: "artwork-card duet-card",
+    container: "duet-grid",
+    label: "Artwork pair",
+    backgroundImage: true,
+    mobileColumns: 2,
+  },
   studies: {
     item: "study-card",
     container: "study-grid",
@@ -183,14 +190,13 @@ function ItemView({ item, list, onChange, ghost = false }) {
         className={className}
       />
     );
-  const ctaClass =
-    list === "works"
-      ? "card-cta"
-      : list === "studies"
-        ? "study-cta"
-        : listStyles[list].variants
-          ? "edge-cta"
-          : "event-link";
+  const ctaClass = listStyles[list].backgroundImage
+    ? "card-cta"
+    : list === "studies"
+      ? "study-cta"
+      : listStyles[list].variants
+        ? "edge-cta"
+        : "event-link";
   const link = (key = "cta", className = ctaClass) =>
     ghost ? (
       <div className={`canvas-link ${className}`}>
@@ -228,7 +234,7 @@ function ItemView({ item, list, onChange, ghost = false }) {
         </div>
       </>
     );
-  if (list === "works")
+  if (listStyles[list].backgroundImage)
     return (
       <>
         <img
@@ -450,7 +456,8 @@ function Repeater({ list, items, onChange, onReorder }) {
       <SortableContext
         items={itemIds}
         strategy={
-          list === "exhibitions" || (narrow && list !== "menu")
+          list === "exhibitions" ||
+          (narrow && list !== "menu" && listStyles[list].mobileColumns !== 2)
             ? verticalListSortingStrategy
             : rectSortingStrategy
         }
@@ -556,6 +563,7 @@ export function App() {
       counts={{
         menu: lists.menu.length,
         works: lists.works.length,
+        duets: lists.duets.length,
         studies: lists.studies.length,
         exhibitions: lists.exhibitions.length,
         edges: lists.edges.length,
@@ -620,6 +628,21 @@ export function App() {
             list="works"
             items={lists.works}
             onChange={changeItem("works")}
+            onReorder={reorder}
+          />
+        </Section>
+        <Section id="duets" className="duets section-padding">
+          <div className="section-heading">
+            <div>
+              {text("duets.eyebrow", "eyebrow")}
+              {text("duets.title", "section-title", "h2")}
+            </div>
+            {text("duets.description", "section-intro", "p")}
+          </div>
+          <Repeater
+            list="duets"
+            items={lists.duets}
+            onChange={changeItem("duets")}
             onReorder={reorder}
           />
         </Section>
