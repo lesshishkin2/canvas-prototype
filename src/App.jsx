@@ -16,6 +16,7 @@ import {
   rectSortingStrategy,
   verticalListSortingStrategy,
   sortableKeyboardCoordinates,
+  defaultAnimateLayoutChanges,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { IconArrowUpRight } from "@tabler/icons-react";
@@ -36,6 +37,7 @@ import {
 } from "./data";
 import "@fontsource-variable/inter";
 import "@fontsource-variable/cormorant-garamond";
+import { useCanvasMotion } from "./useCanvasMotion";
 
 const listStyles = {
   menu: { item: "menu-item", container: "menu-list", label: "Пункт меню" },
@@ -201,7 +203,13 @@ function SortableItem({ item, list, count, onChange, over, active }) {
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: item.id, disabled: count === 1 });
+  } = useSortable({
+    id: item.id,
+    disabled: count === 1,
+    animateLayoutChanges: (args) =>
+      args.items.length === args.previousItems.length &&
+      defaultAnimateLayoutChanges(args),
+  });
   useEffect(() => {
     handles.current.set(item.id, { attributes, listeners });
     return () => handles.current.delete(item.id);
@@ -352,6 +360,7 @@ function Repeater({ list, items, onChange, onReorder }) {
 }
 
 export function App() {
+  const motion = useCanvasMotion();
   const [content, setContent] = useState(() => ({ ...initialContent })),
     [lists, setLists] = useState(() => structuredClone(initialLists));
   const changeField = (key, value) =>
@@ -363,16 +372,29 @@ export function App() {
         item.id === id ? { ...item, [key]: value } : item,
       ),
     }));
-  const duplicate = (list, id) =>
-    setLists((previous) => ({
-      ...previous,
-      [list]: duplicateItem(previous[list], id, crypto.randomUUID()),
-    }));
-  const remove = (list, id) =>
-    setLists((previous) => ({
-      ...previous,
-      [list]: removeItem(previous[list], id),
-    }));
+  const duplicate = (list, id, event) => {
+    const added = crypto.randomUUID();
+    motion.change(
+      () =>
+        setLists((previous) => ({
+          ...previous,
+          [list]: duplicateItem(previous[list], id, added),
+        })),
+      { source: id, added, keyboard: event?.detail === 0 },
+    );
+  };
+  const remove = (list, id, event) => {
+    if (lists[list].length <= 1 || !lists[list].some((item) => item.id === id))
+      return;
+    motion.change(
+      () =>
+        setLists((previous) => ({
+          ...previous,
+          [list]: removeItem(previous[list], id),
+        })),
+      { source: id, removed: true, keyboard: event?.detail === 0 },
+    );
+  };
   const reorder = (list, id, over) =>
     setLists((previous) => ({
       ...previous,
@@ -397,6 +419,7 @@ export function App() {
   );
   return (
     <EditorProvider
+      onBeforeDrag={motion.finish}
       onDuplicate={duplicate}
       onRemove={remove}
       counts={{

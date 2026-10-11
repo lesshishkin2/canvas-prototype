@@ -27,6 +27,7 @@ import {
   IconArrowUpRight,
 } from "@tabler/icons-react";
 import { placeToolbar, TOP, TOOL_INSET } from "./toolbar-layout";
+import { Tooltips } from "./Tooltip";
 
 const EditorContext = createContext(null);
 export const useEditor = () => useContext(EditorContext);
@@ -62,7 +63,13 @@ function toolTargets(active) {
   ];
 }
 
-export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
+export function EditorProvider({
+  children,
+  onDuplicate,
+  onRemove,
+  counts,
+  onBeforeDrag,
+}) {
   const [active, setActive] = useState(null),
     [immediateExit, setImmediateExit] = useState(false),
     [editing, setEditing] = useState(null),
@@ -150,11 +157,12 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
   }, []);
   const startDrag = useCallback(
     (id) => {
+      onBeforeDrag?.();
       cancelHoverTimers();
       dragRef.current = id;
       setDragging(id);
     },
-    [cancelHoverTimers],
+    [cancelHoverTimers, onBeforeDrag],
   );
   const stopDrag = useCallback(() => {
     handlePressed.current = false;
@@ -379,6 +387,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
     document.documentElement.addEventListener("pointerleave", leave);
     window.addEventListener("scroll", viewportChanged, true);
     window.addEventListener("resize", viewportChanged);
+    window.addEventListener("canvaslayout", viewportChanged);
     window.addEventListener("blur", windowBlur);
     document.addEventListener("visibilitychange", visibilityChange);
     return () => {
@@ -392,6 +401,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
       document.documentElement.removeEventListener("pointerleave", leave);
       window.removeEventListener("scroll", viewportChanged, true);
       window.removeEventListener("resize", viewportChanged);
+      window.removeEventListener("canvaslayout", viewportChanged);
       window.removeEventListener("blur", windowBlur);
       document.removeEventListener("visibilitychange", visibilityChange);
     };
@@ -442,6 +452,7 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
   return (
     <EditorContext.Provider value={context}>
       {children}
+      <Tooltips />
       {targets.map((target, level) => (
         <ToolLayer
           key={level}
@@ -452,13 +463,13 @@ export function EditorProvider({ children, onDuplicate, onRemove, counts }) {
             immediateExit || !!editing || !!dragging || !!active?.instant
           }
           counts={counts}
-          onDuplicate={(list, id) => {
-            onDuplicate(list, id);
+          onDuplicate={(list, id, event) => {
             suppress();
+            onDuplicate(list, id, event);
           }}
-          onRemove={(list, id) => {
-            onRemove(list, id);
+          onRemove={(list, id, event) => {
             suppress();
+            onRemove(list, id, event);
           }}
         />
       ))}
@@ -520,11 +531,13 @@ function ToolLayer({
       exiting={exiting}
       onExitComplete={finishExit}
       counts={counts}
-      onDuplicate={() =>
-        !exiting && !hidden && onDuplicate(displayed.list, displayed.item)
+      onDuplicate={(event) =>
+        !exiting &&
+        !hidden &&
+        onDuplicate(displayed.list, displayed.item, event)
       }
-      onRemove={() =>
-        !exiting && !hidden && onRemove(displayed.list, displayed.item)
+      onRemove={(event) =>
+        !exiting && !hidden && onRemove(displayed.list, displayed.item, event)
       }
     />
   );

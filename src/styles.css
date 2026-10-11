@@ -3,6 +3,8 @@
   color: #222528;
   background: #fafafa;
   font-synthesis: none;
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --purple: #8054dd;
   --paper: #f3f1e9;
   --ink: #242720;
@@ -137,6 +139,7 @@ svg {
   outline-color: var(--gray-400);
 }
 .canvas {
+  overflow-anchor: none;
   padding-top: 66px;
 }
 .canvas-section {
@@ -871,7 +874,7 @@ svg {
 }
 .floating-tools {
   --tools-fade-duration: 125ms;
-  --tools-ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --tools-ease-out: var(--ease-out);
   position: fixed;
   z-index: 800;
   display: flex;
@@ -911,8 +914,8 @@ svg {
   align-items: center;
 }
 .tool-button {
-  height: 26px;
-  width: 26px;
+  height: 28px;
+  width: 28px;
   flex-shrink: 0;
   background: var(--gray-800);
   border: 1px solid var(--gray-600);
@@ -955,24 +958,20 @@ svg {
   color: var(--gray-500);
   cursor: not-allowed;
 }
+/* Separate the move handle with breathing room, not a drawn divider. */
 .drag-group {
-  border-left: 1px solid var(--gray-600);
-  padding-left: 4px;
-  margin-left: 1px;
+  margin-left: 5px;
 }
 .drag-handle {
-  width: 20px;
-  padding: 1px;
   cursor: grab;
 }
-.tool-button:after {
-  content: attr(data-tip);
-  position: absolute;
-  top: calc(100% + 8px);
-  right: 0;
+.tool-tooltip {
+  position: fixed;
+  z-index: 1100;
   width: max-content;
-  max-width: 240px;
+  max-width: min(240px, calc(100vw - 16px));
   white-space: normal;
+  text-align: center;
   background: var(--gray-900);
   color: var(--gray-50);
   border-radius: 4px;
@@ -980,36 +979,43 @@ svg {
   font-size: 10px;
   font-weight: 400;
   line-height: 1.4;
-  opacity: 0;
   pointer-events: none;
-  transition: opacity 0.1s;
-  transition-delay: 0s;
   box-shadow: 0 2px 10px #0002;
-  z-index: 10;
+  opacity: 0;
 }
-.tool-button:hover:after,
-.tool-button:focus-visible:after {
+.tool-tooltip[data-positioned="true"] {
   opacity: 1;
-  transition-delay: 0.45s;
+  transition: opacity 125ms var(--ease-out) 450ms;
 }
-.floating-tools:not(.section-tools)
-  .tool-group:first-child
-  .tool-button:first-child:after {
-  right: auto;
-  left: 0;
+.tool-tooltip[data-instant="true"] {
+  transition: none;
+}
+@starting-style {
+  .tool-tooltip[data-positioned="true"]:not([data-instant="true"]) {
+    opacity: 0;
+  }
+}
+[data-list-container] {
+  position: relative;
+}
+.item-exit-ghost {
+  pointer-events: none;
+  z-index: 2;
+  outline: none !important;
+  transform-origin: center;
 }
 .section-tools {
   height: 40px;
   background: color-mix(in srgb, var(--gray-800) 72%, transparent);
-  padding: 8px;
+  padding: 6px 8px;
   gap: 12px;
   filter: none;
   max-width: none;
 }
 .section-tools > .tool-button,
 .section-tools-end > .tool-button {
-  height: 24px;
-  width: 24px;
+  height: 28px;
+  width: 28px;
   background: none;
   border: 0;
   padding: 0;
@@ -1019,10 +1025,6 @@ svg {
 .section-tools-end > .tool-button svg {
   height: 20px;
   width: 20px;
-}
-.section-tools > .tool-button:after {
-  left: 0;
-  right: auto;
 }
 .section-tools-end {
   margin-left: auto;
