@@ -1,5 +1,5 @@
 export const initialContent = {
-  "menu.login": "Войти",
+  "menu.login": "Log in",
   "hero.brand": "FORMA",
   "hero.note": "НЕЗАВИСИМАЯ ГАЛЕРЕЯ · МОСКВА",
   "hero.eyebrow": "ИСКУССТВО БЫТЬ ЗДЕСЬ",
@@ -38,11 +38,11 @@ export const initialContent = {
 
 export const initialLists = {
   menu: [
-    { id: "menu-1", title: "Коллекция", link: true },
-    { id: "menu-2", title: "О галерее", link: true },
-    { id: "menu-3", title: "Выставки", link: true },
-    { id: "menu-4", title: "Спланировать визит", link: true },
-    { id: "menu-5", title: "Контакты", link: true },
+    { id: "menu-1", title: "Collection", link: true },
+    { id: "menu-2", title: "About", link: true },
+    { id: "menu-3", title: "Exhibitions", link: true },
+    { id: "menu-4", title: "Plan a visit", link: true },
+    { id: "menu-5", title: "Contact", link: true },
   ],
   works: [
     {

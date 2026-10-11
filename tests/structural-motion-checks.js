@@ -35,7 +35,7 @@ export async function runStructuralMotionChecks() {
     const before = rect(sibling);
     const initialIds = initial.map((n) => n.dataset.item);
     const beforeScroll = scrollY;
-    await action(source.dataset.item, "Копировать элемент");
+    await action(source.dataset.item, "Duplicate item");
     const copy = items(list).find((n) => !initialIds.includes(n.dataset.item));
     assert(
       copy && items(list)[1] === copy,
@@ -88,7 +88,7 @@ export async function runStructuralMotionChecks() {
       `${list}: animation was not cleaned up`,
     );
     const id = copy.dataset.item;
-    await action(id, "Удалить элемент");
+    await action(id, "Delete item");
     const ghost = q(".item-exit-ghost");
     assert(
       !item(id) && ghost?.inert && ghost.getAttribute("aria-hidden") === "true",
@@ -123,7 +123,7 @@ export async function runStructuralMotionChecks() {
   original.scrollIntoView({ block: "center" });
   await wait(100);
   const initialIds = items("studies").map((n) => n.dataset.item);
-  await action(original.dataset.item, "Копировать элемент");
+  await action(original.dataset.item, "Duplicate item");
   await wait(80);
   const copy = items("studies")[1],
     sibling = items("studies")[2];
@@ -132,7 +132,7 @@ export async function runStructuralMotionChecks() {
   await frame();
   const beforeInterrupt = rect(sibling);
   q(
-    `[data-owner="${copy.dataset.item}"] [aria-label="Удалить элемент"]`,
+    `[data-owner="${copy.dataset.item}"] [aria-label="Delete item"]`,
   ).dispatchEvent(new MouseEvent("click", { bubbles: true, detail: 1 }));
   assert(
     reduced || distance(beforeInterrupt, rect(sibling)) < 2,
@@ -150,10 +150,10 @@ export async function runStructuralMotionChecks() {
     "Interrupted animation leaked",
   );
   results.push({ scenario: "rapid copy → delete", passed: true });
-  await action(original.dataset.item, "Копировать элемент", 0);
+  await action(original.dataset.item, "Duplicate item", 0);
   assert(!q("[data-layout-animating]"), "Keyboard action should be immediate");
   const copyId = items("studies")[1].dataset.item;
-  await action(copyId, "Удалить элемент", 0);
+  await action(copyId, "Delete item", 0);
   assert(!q(".item-exit-ghost"), "Keyboard delete leaves ghost");
   results.push({ scenario: "keyboard", passed: true });
   return { width: innerWidth, reduced, results };

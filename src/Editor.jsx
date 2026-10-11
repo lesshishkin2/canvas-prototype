@@ -763,10 +763,10 @@ function FloatingTools({
   const h = handles.current.get(target.item);
   const imgTools = (
     <div className="tool-group">
-      <ToolButton label="Заменить изображение · демо">
+      <ToolButton label="Replace image · demo">
         <IconPhotoUp aria-hidden="true" />
       </ToolButton>
-      <ToolButton label="Редактировать изображение · демо">
+      <ToolButton label="Edit image · demo">
         <IconPhotoEdit aria-hidden="true" />
       </ToolButton>
     </div>
@@ -799,17 +799,17 @@ function FloatingTools({
       role="toolbar"
       aria-label={
         isSection
-          ? "Действия секции"
+          ? "Block actions"
           : target.kind === "item"
-            ? "Действия элемента"
-            : "Действия объекта"
+            ? "Item actions"
+            : "Object actions"
       }
     >
       {isSection ? (
         <>
           <div className="tool-group">
             <ToolButton
-              label="Edit block · демо"
+              label="Edit block · demo"
               className="tool-button section-edit-button"
             >
               <IconPencil aria-hidden="true" />
@@ -819,7 +819,7 @@ function FloatingTools({
           {inputMode === "touch" || narrow ? (
             <div className="tool-group section-tools-end">
               <ToolButton
-                label="Другие действия секции"
+                label="More block actions"
                 aria-haspopup="menu"
                 aria-expanded={menu?.targetId === target.id}
                 onClick={(event) =>
@@ -841,18 +841,18 @@ function FloatingTools({
               )}
               <div className="section-tools-end">
                 <div className="tool-group">
-                  <ToolButton label="Видимость секции · демо">
+                  <ToolButton label="Block visibility · demo">
                     <IconEye aria-hidden="true" />
                   </ToolButton>
-                  <ToolButton label="Удалить секцию · демо">
+                  <ToolButton label="Delete block · demo">
                     <IconTrash aria-hidden="true" />
                   </ToolButton>
                 </div>
                 <div className="tool-group">
-                  <ToolButton label="Секция выше · демо">
+                  <ToolButton label="Move block up · demo">
                     <IconArrowUp aria-hidden="true" />
                   </ToolButton>
-                  <ToolButton label="Секция ниже · демо">
+                  <ToolButton label="Move block down · demo">
                     <IconArrowDown aria-hidden="true" />
                   </ToolButton>
                 </div>
@@ -868,8 +868,8 @@ function FloatingTools({
               <ToolButton
                 label={
                   target.kind === "item"
-                    ? "Редактировать ссылку элемента · демо"
-                    : "Редактировать ссылку · демо"
+                    ? "Edit item link · demo"
+                    : "Edit link · demo"
                 }
               >
                 <IconLink aria-hidden="true" />
@@ -879,15 +879,11 @@ function FloatingTools({
           {target.kind === "item" && (
             <>
               <div className="tool-group">
-                <ToolButton label="Копировать элемент" onClick={onDuplicate}>
+                <ToolButton label="Duplicate item" onClick={onDuplicate}>
                   <IconCopyPlus aria-hidden="true" />
                 </ToolButton>
                 <ToolButton
-                  label={
-                    single
-                      ? "Последний элемент нельзя удалить"
-                      : "Удалить элемент"
-                  }
+                  label={single ? "Cannot delete the last item" : "Delete item"}
                   disabled={single}
                   onClick={onRemove}
                 >
@@ -898,11 +894,7 @@ function FloatingTools({
                 <ToolButton
                   {...(!single ? h?.attributes : {})}
                   {...(!single ? h?.listeners : {})}
-                  label={
-                    single
-                      ? "Один элемент — перемещение недоступно"
-                      : "Перетащить элемент"
-                  }
+                  label={single ? "Cannot move the only item" : "Drag item"}
                   disabled={single}
                   className="tool-button drag-handle"
                   onClick={undefined}
@@ -949,15 +941,13 @@ export function Editable({
       data-kind={itemLabel ? undefined : kind}
       data-field={id}
       data-empty={!value.trim() || undefined}
-      data-placeholder="Введите текст"
+      data-placeholder="Enter text"
       contentEditable={
         inputMode !== "touch" || editing === id ? "plaintext-only" : false
       }
       suppressContentEditableWarning
       role="textbox"
-      aria-label={
-        label || `Редактировать: ${value.slice(0, 45) || "пустой текст"}`
-      }
+      aria-label={label || `Edit text: ${value.slice(0, 45) || "empty text"}`}
       aria-multiline={!singleLine}
       tabIndex={0}
       spellCheck="false"
@@ -1024,13 +1014,13 @@ export function Section({ id, hasImage = false, className = "", children }) {
       className={`canvas-section ${className}`}
     >
       <div className="section-divider section-divider-start">
-        <button aria-label="Добавить секцию · демо" data-editor-toolbar="true">
+        <button aria-label="Add block · demo" data-editor-toolbar="true">
           <IconPlus aria-hidden="true" />
         </button>
       </div>
       {children}
       <div className="section-divider section-divider-end">
-        <button aria-label="Добавить секцию · демо" data-editor-toolbar="true">
+        <button aria-label="Add block · demo" data-editor-toolbar="true">
           <IconPlus aria-hidden="true" />
         </button>
       </div>
@@ -1045,12 +1035,12 @@ export function Topbar() {
       <div className="topbar-left">
         <button
           className="back-button"
-          title="Назад · демо"
-          aria-label="Назад · демо"
+          title="Back · demo"
+          aria-label="Back · demo"
         >
           <ChevronLeft size={18} aria-hidden="true" />
         </button>
-        <button className="page-switch" title="Переключение страниц · демо">
+        <button className="page-switch" title="Switch page · demo">
           <span>
             <span className="desktop-only">Page: </span>
             <strong>Main page</strong>
@@ -1061,32 +1051,25 @@ export function Topbar() {
       <div className="topbar-right">
         <button
           className="bare-button desktop-only"
-          title="Настройки страницы · демо"
-          aria-label="Настройки страницы · демо"
+          title="Page settings · demo"
+          aria-label="Page settings · demo"
         >
           <Settings size={20} aria-hidden="true" />
         </button>
         <button
           className="bare-button desktop-only"
-          title="Настройки темы · демо"
-          aria-label="Настройки темы · демо"
+          title="Change theme · demo"
+          aria-label="Change theme · demo"
         >
           <Palette size={20} aria-hidden="true" />
         </button>
-        <button
-          className="preview-button desktop-only"
-          title="Предпросмотр · демо"
-        >
+        <button className="preview-button desktop-only" title="Preview · demo">
           <Eye size={19} aria-hidden="true" />
           Preview
         </button>
         <button
           className="save-button"
-          title={
-            done
-              ? "Завершить редактирование"
-              : "Демонстрация: изменения не сохраняются"
-          }
+          title={done ? "Finish editing" : "Demo: changes are not saved"}
           data-finish-editing={done || undefined}
           onPointerDown={(event) => {
             if (done) event.preventDefault();
@@ -1096,7 +1079,7 @@ export function Topbar() {
           }}
         >
           {done ? (
-            "Готово"
+            "Done"
           ) : (
             <>
               <span className="desktop-only">Save Changes</span>
@@ -1106,7 +1089,7 @@ export function Topbar() {
         </button>
         <button
           className="bare-button mobile-only"
-          aria-label="Другие действия редактора"
+          aria-label="More editor actions"
           aria-haspopup="menu"
           aria-expanded={menu?.kind === "topbar"}
           onClick={(event) =>

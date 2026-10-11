@@ -107,7 +107,7 @@ export async function runMobileChecks() {
   );
   assert(!panels().length, "Input leaves toolbars visible");
   assert(
-    document.querySelector(".save-button").textContent === "Готово",
+    document.querySelector(".save-button").textContent === "Done",
     "Missing Done",
   );
   await tap(document.querySelector(".save-button"), { click: true });
@@ -218,7 +218,7 @@ export async function runMobileChecks() {
   await show("edge-empty");
   await tap(
     [...panel("edge-empty").querySelectorAll("button")].find(
-      (n) => n.getAttribute("aria-label") === "Копировать элемент",
+      (n) => n.getAttribute("aria-label") === "Duplicate item",
     ),
     { click: true },
   );
@@ -240,7 +240,7 @@ export async function runMobileChecks() {
   await show(copy);
   await tap(
     [...panel(copy).querySelectorAll("button")].find(
-      (n) => n.getAttribute("aria-label") === "Удалить элемент",
+      (n) => n.getAttribute("aria-label") === "Delete item",
     ),
     { click: true },
   );

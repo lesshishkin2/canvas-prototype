@@ -204,7 +204,7 @@ export async function checkInsetToolbarBridge() {
   );
   const copy = order("studies")[order("studies").indexOf("study-1") + 1];
   await hover(query(`[data-item="${copy}"]`));
-  await action("Удалить элемент");
+  await action("Delete item");
   await hover(field("study-1.cta"));
   assert(
     toolbar()?.dataset.owner === "study-1.cta" && labels().length === 1,
@@ -360,12 +360,12 @@ export async function checkHoverDwell() {
   await hover(card);
   imagePoint();
   await wait(55);
-  await action("Копировать элемент");
+  await action("Duplicate item");
   await wait(190);
   assert(!toolbar(), "Pending tools reappeared after a structural action");
   const copy = order("studies")[order("studies").indexOf("study-1") + 1];
   await hover(query(`[data-item="${copy}"]`));
-  await action("Удалить элемент");
+  await action("Delete item");
 }
 
 export async function runChecks() {
@@ -418,7 +418,7 @@ export async function runChecks() {
     );
     assert(
       labels().join("|") ===
-        "Редактировать ссылку элемента · демо|Копировать элемент|Удалить элемент|Перетащить элемент",
+        "Edit item link · demo|Duplicate item|Delete item|Drag item",
       "Incorrect menu actions",
     );
     const item = query('[data-item="menu-1"]').getBoundingClientRect(),
@@ -438,7 +438,7 @@ export async function runChecks() {
     await wait(220);
     assert(toolbar()?.dataset.owner === "menu-1", "Menu toolbar lost over gap");
     const href = location.href;
-    await action("Редактировать ссылку элемента · демо");
+    await action("Edit item link · demo");
     assert(
       location.href === href && order("menu").length === 5,
       "Link placeholder changed page",
@@ -462,7 +462,7 @@ export async function runChecks() {
   await test("Menu copies independently and reorders horizontally with cancellation", async () => {
     const before = order("menu");
     await hover(field("menu-1.title"));
-    await action("Копировать элемент");
+    await action("Duplicate item");
     const copy = order("menu")[1];
     assert(
       !before.includes(copy) &&
@@ -475,7 +475,7 @@ export async function runChecks() {
       "Menu copy shares text",
     );
     await hover(query(`[data-item="${copy}"]`));
-    await action("Удалить элемент");
+    await action("Delete item");
     assert(!toolbar(), "Menu delete leaves an active toolbar");
     await drag("menu", "menu-1", "menu-3");
     assert(order("menu")[2] === "menu-1", "Horizontal menu reorder failed");
@@ -495,7 +495,7 @@ export async function runChecks() {
   await test("Menu wraps and sorts across rows; final item cannot be deleted", async () => {
     for (let i = 0; i < 10; i++) {
       await hover(query('[data-item="menu-5"]'));
-      await action("Копировать элемент");
+      await action("Duplicate item");
     }
     const before = order("menu"),
       last = before.at(-1);
@@ -518,13 +518,12 @@ export async function runChecks() {
     );
     while (order("menu").length > 1) {
       await hover(query(`[data-item="${order("menu")[0]}"]`));
-      await action("Удалить элемент");
+      await action("Delete item");
     }
     await hover(query(`[data-item="${order("menu")[0]}"]`));
     const disabled = all('.floating-tools [aria-disabled="true"]');
     assert(
-      disabled.length === 2 &&
-        labels().includes("Последний элемент нельзя удалить"),
+      disabled.length === 2 && labels().includes("Cannot delete the last item"),
       "Menu final item is not protected",
     );
     disabled.forEach((button) => button.click());
@@ -534,7 +533,7 @@ export async function runChecks() {
     await hover(query('[data-item="work-1"]'));
     assert(
       labels().join("|") ===
-        "Заменить изображение · демо|Редактировать изображение · демо|Редактировать ссылку элемента · демо|Копировать элемент|Удалить элемент|Перетащить элемент",
+        "Replace image · demo|Edit image · demo|Edit item link · demo|Duplicate item|Delete item|Drag item",
       "Wrong action order",
     );
     await hover(field("work-1.title"), false);
@@ -544,7 +543,7 @@ export async function runChecks() {
     );
     await hover(field("work-1.cta"), false);
     assert(
-      labels().length === 1 && labels()[0] === "Редактировать ссылку · демо",
+      labels().length === 1 && labels()[0] === "Edit link · demo",
       "Nested link target failed",
     );
   });
@@ -638,7 +637,7 @@ export async function runChecks() {
   await test("Copy latest content next to original; new copy edits independently", async () => {
     const before = order("works");
     await hover(query('[data-item="work-1"]'));
-    await action("Копировать элемент");
+    await action("Duplicate item");
     const after = order("works"),
       copy = after[after.indexOf("work-1") + 1];
     assert(
@@ -656,7 +655,7 @@ export async function runChecks() {
       "Copy shares editable content",
     );
     await hover(query(`[data-item="${copy}"]`));
-    await action("Удалить элемент");
+    await action("Delete item");
     assert(!toolbar(), "Delete left a hot toolbar under the pointer");
   });
   await test("Drag threshold and grid reorder in both directions across rows", async () => {
@@ -770,11 +769,11 @@ export async function runChecks() {
     );
     while (order("exhibitions").length > 1) {
       await hover(query(`[data-item="${order("exhibitions")[0]}"]`));
-      await action("Удалить элемент");
+      await action("Delete item");
     }
     await hover(query(`[data-item="${order("exhibitions")[0]}"]`));
     assert(
-      labels().includes("Последний элемент нельзя удалить"),
+      labels().includes("Cannot delete the last item"),
       "Missing last-item protection",
     );
     const disabled = all('.floating-tools [aria-disabled="true"]');
@@ -798,20 +797,18 @@ export async function runChecks() {
     await hover(card);
     assert(
       toolbar()?.dataset.owner === "study-1" &&
-        labels().join("|") ===
-          "Копировать элемент|Удалить элемент|Перетащить элемент",
+        labels().join("|") === "Duplicate item|Delete item|Drag item",
       "Parent should only have duplicate, delete and drag",
     );
     await hover(visual);
     assert(
       toolbar()?.dataset.owner === "study-1.image" &&
-        labels().join("|") ===
-          "Заменить изображение · демо|Редактировать изображение · демо",
+        labels().join("|") === "Replace image · demo|Edit image · demo",
       "Nested image should own only the two image actions",
     );
     const before = img.src;
-    await action("Заменить изображение · демо");
-    await action("Редактировать изображение · демо");
+    await action("Replace image · demo");
+    await action("Edit image · demo");
     assert(
       img.src === before && location.href === href && !query(".drag-preview"),
       "Image demos changed data or started dragging",
@@ -843,7 +840,7 @@ export async function runChecks() {
   await test("Inline-image group copies independently, sorts, cancels and protects its last item", async () => {
     const foreign = order("works").join();
     await hover(query('[data-item="study-1"]'));
-    await action("Копировать элемент");
+    await action("Duplicate item");
     const copy = order("studies")[1];
     assert(
       copy !== "study-1" &&
@@ -879,16 +876,16 @@ export async function runChecks() {
     );
     while (order("studies").length > 1) {
       await hover(query(`[data-item="${order("studies")[0]}"]`));
-      await action("Удалить элемент");
+      await action("Delete item");
       assert(!toolbar(), "Deleted item left a toolbar visible");
     }
     await hover(query(`[data-item="${order("studies")[0]}"]`));
     assert(
-      labels().includes("Последний элемент нельзя удалить") &&
+      labels().includes("Cannot delete the last item") &&
         all('.floating-tools [aria-disabled="true"]').length === 2,
       "Last inline-image item lacks delete/drag guards",
     );
-    await action("Последний элемент нельзя удалить");
+    await action("Cannot delete the last item");
     assert(order("studies").length === 1, "Last inline-image item was deleted");
   });
   await test("Long text expands without horizontal overflow", async () => {

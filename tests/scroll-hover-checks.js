@@ -179,7 +179,7 @@ export async function runScrollHoverChecks() {
   results.push("Window exit invalidates the stored pointer position");
 
   await begin("study-1.image");
-  tool("study-1").querySelector('[aria-label="Копировать элемент"]').click();
+  tool("study-1").querySelector('[aria-label="Duplicate item"]').click();
   await wait(40);
   window.scrollBy(0, 20);
   await wait();

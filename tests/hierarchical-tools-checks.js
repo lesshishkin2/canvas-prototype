@@ -157,7 +157,7 @@ export async function runHierarchicalToolsChecks() {
       tool("study-1") === parent && tool("study-1.image"),
       "Crossing between panels lost tools",
     );
-    const copy = button(parent, "Копировать элемент"),
+    const copy = button(parent, "Duplicate item"),
       r = copy.getBoundingClientRect();
     at(r.left + r.width / 2, r.top + r.height / 2);
     await wait(220);
@@ -177,7 +177,7 @@ export async function runHierarchicalToolsChecks() {
     await wait(100);
     imagePoint(copiedCard);
     await wait();
-    button(tool(copiedId), "Удалить элемент").click();
+    button(tool(copiedId), "Delete item").click();
     await wait(100);
     assert(
       ids().length === count && !tools().length,

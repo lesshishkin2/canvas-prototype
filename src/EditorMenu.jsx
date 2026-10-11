@@ -23,14 +23,14 @@ export function EditorMenu({ menu, onClose }) {
       : [
           ...(menu.hasImage
             ? [
-                [IconPhotoUp, "Заменить фон"],
-                [IconPhotoEdit, "Редактировать фон"],
+                [IconPhotoUp, "Replace background"],
+                [IconPhotoEdit, "Edit background"],
               ]
             : []),
-          [IconEye, "Видимость секции"],
-          [IconTrash, "Удалить секцию"],
-          [IconArrowUp, "Секция выше"],
-          [IconArrowDown, "Секция ниже"],
+          [IconEye, "Block visibility"],
+          [IconTrash, "Delete block"],
+          [IconArrowUp, "Move block up"],
+          [IconArrowDown, "Move block down"],
         ];
   useLayoutEffect(() => {
     const panel = ref.current;
@@ -71,9 +71,7 @@ export function EditorMenu({ menu, onClose }) {
       className="editor-menu"
       data-editor-menu="true"
       role="menu"
-      aria-label={
-        menu.kind === "topbar" ? "Действия редактора" : "Действия секции"
-      }
+      aria-label={menu.kind === "topbar" ? "Editor actions" : "Block actions"}
       style={{ visibility: "hidden" }}
       onKeyDown={(event) => {
         const items = [...ref.current.querySelectorAll("button")],
@@ -94,7 +92,7 @@ export function EditorMenu({ menu, onClose }) {
           key={label}
           type="button"
           role="menuitem"
-          aria-label={`${label} · демо`}
+          aria-label={`${label} · demo`}
           onClick={onClose}
         >
           <Icon aria-hidden="true" />

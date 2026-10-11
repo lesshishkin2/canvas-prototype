@@ -238,7 +238,7 @@ export async function runEdgeCaseChecks() {
   hover("edge-narrow.image");
   await wait();
   const count = order().length;
-  action("edge-narrow", "Копировать элемент");
+  action("edge-narrow", "Duplicate item");
   await wait(100);
   const copy = order()[order().indexOf("edge-narrow") + 1];
   assert(
@@ -253,7 +253,7 @@ export async function runEdgeCaseChecks() {
   await wait(120);
   hover(`${copy}.image`);
   await wait();
-  action(copy, "Удалить элемент");
+  action(copy, "Delete item");
   await wait(100);
   assert(
     order().length === count && !panels().length,

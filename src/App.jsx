@@ -41,33 +41,33 @@ import { useCanvasMotion } from "./useCanvasMotion";
 import { getViewportBounds } from "./viewport";
 
 const listStyles = {
-  menu: { item: "menu-item", container: "menu-list", label: "Пункт меню" },
+  menu: { item: "menu-item", container: "menu-list", label: "Menu item" },
   works: {
     item: "artwork-card",
     container: "artwork-grid",
-    label: "Работа",
+    label: "Artwork",
     backgroundImage: true,
   },
   studies: {
     item: "study-card",
     container: "study-grid",
-    label: "Деталь коллекции",
+    label: "Collection detail",
   },
   exhibitions: {
     item: "event-row",
     container: "event-list",
-    label: "Выставка",
+    label: "Exhibition",
   },
   edges: {
     item: "edge-card",
     container: "edge-grid",
-    label: "Пограничный сценарий",
+    label: "Edge case",
     variants: true,
   },
   edgeSamples: {
     item: "edge-card",
     container: "edge-grid edge-samples",
-    label: "Пограничный сценарий",
+    label: "Edge case",
     variants: true,
   },
 };
@@ -82,7 +82,7 @@ function EdgeCaseView({ item, ghost, text, link }) {
       data-editor-target={ghost ? undefined : `${item.id}.${key}`}
       data-kind={ghost ? undefined : "image"}
       tabIndex={ghost ? undefined : 0}
-      aria-label={`Изображение: ${item.title}${key === "image2" ? " · второе" : ""}`}
+      aria-label={`Image: ${item.title}${key === "image2" ? " · second image" : ""}`}
     >
       <img src={item[key]} alt={item.title} draggable="false" />
     </figure>
@@ -215,7 +215,7 @@ function ItemView({ item, list, onChange, ghost = false }) {
           data-editor-target={ghost ? undefined : `${item.id}.image`}
           data-kind={ghost ? undefined : "image"}
           tabIndex={ghost ? undefined : 0}
-          aria-label={`Изображение: ${item.title}`}
+          aria-label={`Image: ${item.title}`}
         >
           <img src={item.image} alt={item.title} draggable="false" />
         </figure>
@@ -554,15 +554,15 @@ export function App() {
       }}
     >
       <Topbar />
-      <main className="canvas" aria-label="Canvas редактора FORMA">
+      <main className="canvas" aria-label="FORMA editor canvas">
         <Section id="menu" className="site-menu">
-          <nav className="menu-content" aria-label="Меню галереи">
+          <nav className="menu-content" aria-label="Gallery navigation">
             <figure
               className="menu-logo"
               data-editor-target="menu.logo"
               data-kind="image"
               tabIndex={0}
-              aria-label="Логотип галереи FORMA"
+              aria-label="FORMA gallery logo"
             >
               <img src="/assets/forma-logo.svg" alt="FORMA" draggable="false" />
             </figure>
@@ -656,7 +656,7 @@ export function App() {
             data-editor-target="about.image"
             data-kind="image"
             tabIndex={0}
-            aria-label="Изображение галереи"
+            aria-label="Gallery image"
           >
             <img
               src="/assets/art/interior.jpg"
