@@ -13,6 +13,73 @@ const rect = (left, top, width, height) => ({
 const view = { left: 0, top: 57, right: 390, bottom: 844, touch: true };
 const overlap = (a, b) =>
   a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top;
+
+for (const touch of [false, true]) {
+  const bounds = { ...view, touch };
+  const mode = touch ? "touch" : "mouse";
+  test(`${mode}: tools pin at viewport edges and rejoin content on return`, () => {
+    const size = rect(0, 0, 113, 36);
+    const card = (top) =>
+      placeToolbar({ kind: "item" }, rect(20, top, 350, 600), size, bounds);
+    assert.equal(card(-20).position, "fixed");
+    assert.equal(card(-40).top, card(-20).top);
+    assert.equal(card(200).position, "absolute");
+    assert.equal(card(180).top, card(200).top - 20);
+
+    const image = (top) =>
+      placeToolbar({ kind: "image" }, rect(20, top, 350, 300), size, bounds);
+    assert.equal(image(780).position, "fixed");
+    assert.equal(image(800).top, image(780).top);
+    assert.equal(image(500).position, "absolute");
+    assert.equal(image(480).top, image(500).top - 20);
+  });
+
+  test(`${mode}: collision rows inherit the parent's scroll attachment`, () => {
+    const anchor = rect(20, 80, 180, 72);
+    const parent = { ...rect(79, 88, 113, 36), position: "fixed" };
+    const image = placeToolbar(
+      { kind: "image" },
+      anchor,
+      rect(0, 0, 71, 36),
+      bounds,
+      [parent],
+    );
+    assert.equal(image.top, parent.bottom + 6);
+    assert.equal(image.position, "fixed");
+    const link = placeToolbar(
+      { kind: "link" },
+      rect(120, 65, 80, 30),
+      rect(0, 0, 36, 36),
+      bounds,
+      [parent],
+    );
+    assert.equal(link.position, "fixed");
+    assert.equal(link.top, parent.bottom + 6);
+    const moving = placeToolbar(
+      { kind: "image" },
+      anchor,
+      rect(0, 0, 71, 36),
+      bounds,
+      [{ ...parent, position: "absolute" }],
+    );
+    assert.equal(moving.position, "absolute");
+    assert.equal(moving.top, image.top);
+  });
+}
+
+test("touch fallback above a pinned parent also stays fixed", () => {
+  const parent = { ...rect(79, 768, 113, 36), position: "fixed" };
+  const image = placeToolbar(
+    { kind: "image" },
+    rect(20, 785, 180, 59),
+    rect(0, 0, 71, 36),
+    view,
+    [parent],
+  );
+  assert.equal(image.bottom, parent.top - 6);
+  assert.equal(image.position, "fixed");
+});
+
 test("touch tools can be wider and taller than their image", () => {
   const image = rect(20, 160, 32, 32);
   const tools = placeToolbar(

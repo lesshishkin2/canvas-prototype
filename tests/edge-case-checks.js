@@ -116,10 +116,16 @@ export async function runSectionCollisionChecks() {
         .querySelector(".section-edit-button")
         .getBoundingClientRect();
       const image = target("menu.logo").getBoundingClientRect();
+      const centeredTop = image.top + (image.height - r.height) / 2;
+      // Temporary clearance may already put the logo below Edit block.
+      // Horizontal overlap alone must not move its centered image tools.
       const expected =
-        r.left < edit.right && r.right > edit.left
+        r.left < edit.right &&
+        r.right > edit.left &&
+        centeredTop < edit.bottom + 6 &&
+        centeredTop + r.height + 6 > edit.top
           ? edit.bottom + 6
-          : image.top + (image.height - r.height) / 2;
+          : centeredTop;
       assert(
         Math.abs(r.top - expected) < 1,
         "Image tools overlap Edit block or shift in its empty neighbouring space",

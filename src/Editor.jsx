@@ -159,11 +159,11 @@ export function EditorProvider({
             .flatMap((parent) => parent.obstacles),
         );
       if (rect) {
-        // Normal tools scroll natively with the document. Only the pinned
-        // section panel is viewport-fixed. Write geometry synchronously: a
-        // React render must not add a frame of lag during scroll or reflow.
-        const pinned = target.kind === "section" && rect.top === viewport.top;
-        panel.style.position = pinned ? "fixed" : "absolute";
+        // Follow the placement's anchor: content scrolls natively; a viewport
+        // boundary or pinned ancestor stays fixed, including dark child panels.
+        // Never compensate native scrolling with a later position correction.
+        const pinned = rect.position === "fixed";
+        panel.style.position = rect.position;
         panel.style.left = `${rect.left + (pinned ? 0 : scrollX)}px`;
         panel.style.top = `${rect.top + (pinned ? 0 : scrollY)}px`;
         panel.style.width =
@@ -183,9 +183,10 @@ export function EditorProvider({
         // occupy space; descendants can share the empty part of that row.
         const obstacles =
           target.kind === "section"
-            ? Array.from(panel.querySelectorAll(".tool-group"), (group) =>
-                group.getBoundingClientRect(),
-              )
+            ? Array.from(panel.querySelectorAll(".tool-group"), (group) => ({
+                ...group.getBoundingClientRect().toJSON(),
+                position: rect.position,
+              }))
             : [rect];
         placed.push({ target, obstacles });
       }

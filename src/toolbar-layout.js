@@ -29,21 +29,26 @@ export function placeToolbar(target, anchor, size, viewport, ancestors = []) {
       ? anchor.left + (anchor.width - width) / 2
       : anchor.right - width - (above ? 0 : TOOL_INSET);
   let top;
+  let position = "absolute";
   if (section) {
     top = Math.max(ceiling, anchor.top);
+    if (anchor.top <= ceiling) position = "fixed";
     if (top + size.height > anchor.bottom) return null;
   } else if (above) {
     top = anchor.top - size.height - 7;
     if (top < ceiling + 6) top = anchor.bottom + 7;
   } else if (target.kind === "image") {
     top = anchor.top + (anchor.height - size.height) / 2;
-  } else top = Math.max(ceiling + 6, anchor.top + TOOL_INSET);
+  } else {
+    top = Math.max(ceiling + 6, anchor.top + TOOL_INSET);
+    if (anchor.top + TOOL_INSET <= ceiling + 6) position = "fixed";
+  }
   if (!section)
     left = Math.max(bounds.left + 8, Math.min(left, bounds.right - width - 12));
-  top = Math.max(
-    section ? ceiling : ceiling + 4,
-    Math.min(top, bounds.bottom - size.height - 8),
-  );
+  const minY = section ? ceiling : ceiling + 4;
+  const maxY = bounds.bottom - size.height - 8;
+  if (top <= minY || top >= maxY) position = "fixed";
+  top = Math.max(minY, Math.min(top, maxY));
   const rect = () => ({
     left,
     top,
@@ -51,21 +56,31 @@ export function placeToolbar(target, anchor, size, viewport, ancestors = []) {
     height: size.height,
     right: left + width,
     bottom: top + size.height,
+    position,
   });
   const originalTop = top;
+  const originalPosition = position;
   for (const ancestor of ancestors) {
-    if (intersects(rect(), ancestor)) top = ancestor.bottom + TOOL_GAP;
+    if (intersects(rect(), ancestor)) {
+      top = ancestor.bottom + TOOL_GAP;
+      position = ancestor.position ?? "absolute";
+    }
   }
   if (above && top < anchor.bottom && top + size.height > anchor.top) {
     // Stacking below a section must not place tools across a menu/button label.
     top = anchor.bottom + 7;
+    position = "absolute";
     for (const ancestor of ancestors) {
-      if (intersects(rect(), ancestor)) top = ancestor.bottom + TOOL_GAP;
+      if (intersects(rect(), ancestor)) {
+        top = ancestor.bottom + TOOL_GAP;
+        position = ancestor.position ?? "absolute";
+      }
     }
   }
   if (top + size.height > bounds.bottom - 8) {
     // At the bottom edge keep the parent fixed and use free space to its left.
     top = Math.min(originalTop, bounds.bottom - size.height - 8);
+    position = originalPosition;
     for (const ancestor of [...ancestors].reverse()) {
       if (intersects(rect(), ancestor)) left = ancestor.left - width - TOOL_GAP;
     }
@@ -102,19 +117,28 @@ function placeTouchToolbar(target, anchor, size, bounds, ancestors) {
         : anchor.right - width - (outside ? 0 : TOOL_INSET),
   );
   const top = section
-    ? clampY(anchor.top)
+    ? anchor.top
     : outside
       ? anchor.top - height - 7
       : target.kind === "image"
         ? anchor.top + (anchor.height - height) / 2
         : anchor.top + TOOL_INSET;
-  const rect = (x, y) => ({
+  const row = (top, position = "absolute") => ({ top, position });
+  const clampRow = (candidate) =>
+    row(
+      clampY(candidate.top),
+      candidate.top <= minY || candidate.top >= maxY
+        ? "fixed"
+        : candidate.position,
+    );
+  const rect = (x, candidate) => ({
     left: x,
-    top: y,
+    top: candidate.top,
     width,
     height,
     right: x + width,
-    bottom: y + height,
+    bottom: candidate.top + height,
+    position: candidate.position,
   });
   const valid = (r) =>
     r.top >= minY &&
@@ -133,22 +157,22 @@ function placeTouchToolbar(target, anchor, size, bounds, ancestors) {
   // A pinned section toolbar must not steal the image's local collision fallback.
   const candidates = [
     ...ancestors.flatMap((a) => [
-      a.bottom + TOOL_GAP,
-      a.top - height - TOOL_GAP,
+      row(a.bottom + TOOL_GAP, a.position),
+      row(a.top - height - TOOL_GAP, a.position),
     ]),
-    anchor.bottom + 7,
-    anchor.top - height - 7,
-    minY,
-    maxY,
+    row(anchor.bottom + 7),
+    row(anchor.top - height - 7),
+    row(minY, "fixed"),
+    row(maxY, "fixed"),
   ];
   const rows = [
-    top,
-    ...(!outside ? [clampY(top)] : []),
-    ...candidates.filter((y) => y >= top).sort((a, b) => a - b),
-    ...candidates.filter((y) => y < top).sort((a, b) => b - a),
+    section ? clampRow(row(top)) : row(top),
+    ...(!outside ? [clampRow(row(top))] : []),
+    ...candidates.filter((r) => r.top >= top).sort((a, b) => a.top - b.top),
+    ...candidates.filter((r) => r.top < top).sort((a, b) => b.top - a.top),
   ];
-  for (const y of rows) {
-    const r = rect(left, y);
+  for (const candidate of rows) {
+    const r = rect(left, candidate);
     if (valid(r)) return { ...r, sectionWidth: section ? width : undefined };
   }
   const columns = [
@@ -160,8 +184,8 @@ function placeTouchToolbar(target, anchor, size, bounds, ancestors) {
     maxX,
   ];
   for (const x of columns)
-    for (const y of rows) {
-      const r = rect(x, y);
+    for (const candidate of rows) {
+      const r = rect(x, candidate);
       if (valid(r)) return { ...r, sectionWidth: section ? width : undefined };
     }
   return null;
