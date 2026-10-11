@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import {
   DndContext,
@@ -238,6 +238,26 @@ function Repeater({ list, items, onChange, onReorder }) {
   const Container = list === "menu" ? "ul" : "div";
   const { startDrag, stopDrag, pointerPosition } = useEditor(),
     container = useRef(null);
+  // A new array on each hover render makes useSortable disable transitions.
+  const itemIds = useMemo(() => items.map((item) => item.id), [items]);
+  const grabOffset = useRef({ x: 0, y: 0 });
+  const dragPoint = useCallback((point) => {
+    if (!point || point.y < 66) return point;
+    const projected = {
+      x: point.x + grabOffset.current.x,
+      y: point.y + grabOffset.current.y,
+    };
+    const r = container.current?.getBoundingClientRect();
+    const inside = (p) =>
+      r &&
+      p.x >= r.left &&
+      p.x <= r.right &&
+      p.y >= Math.max(66, r.top) &&
+      p.y <= r.bottom;
+    // Also accept a direct drop on a label: moving up from an external handle
+    // must not reject the item just because the projected grip is above it.
+    return !inside(projected) && inside(point) ? point : projected;
+  }, []);
   const [active, setActive] = useState(null),
     [over, setOver] = useState(null);
   const sensors = useSensors(
@@ -246,35 +266,38 @@ function Repeater({ list, items, onChange, onReorder }) {
       coordinateGetter: sortableKeyboardCoordinates,
     }),
   );
-  const collision = useCallback((args) => {
-    const r = container.current?.getBoundingClientRect(),
-      p = args.pointerCoordinates;
-    if (
-      r &&
-      p &&
-      (p.x < r.left ||
-        p.x > r.right ||
-        p.y < Math.max(66, r.top) ||
-        p.y > r.bottom)
-    )
-      return [];
-    if (p) {
-      const underPointer = pointerWithin(args);
-      if (underPointer.length) return underPointer;
-      return closestCenter({
-        ...args,
-        collisionRect: {
-          left: p.x,
-          right: p.x,
-          top: p.y,
-          bottom: p.y,
-          width: 0,
-          height: 0,
-        },
-      });
-    }
-    return closestCenter(args);
-  }, []);
+  const collision = useCallback(
+    (args) => {
+      const r = container.current?.getBoundingClientRect(),
+        p = dragPoint(args.pointerCoordinates);
+      if (
+        r &&
+        p &&
+        (p.x < r.left ||
+          p.x > r.right ||
+          p.y < Math.max(66, r.top) ||
+          p.y > r.bottom)
+      )
+        return [];
+      if (p) {
+        const underPointer = pointerWithin({ ...args, pointerCoordinates: p });
+        if (underPointer.length) return underPointer;
+        return closestCenter({
+          ...args,
+          collisionRect: {
+            left: p.x,
+            right: p.x,
+            top: p.y,
+            bottom: p.y,
+            width: 0,
+            height: 0,
+          },
+        });
+      }
+      return closestCenter(args);
+    },
+    [dragPoint],
+  );
   const activeItem = items.find((item) => item.id === active);
   const finish = () => {
     setActive(null);
@@ -286,16 +309,32 @@ function Repeater({ list, items, onChange, onReorder }) {
       sensors={sensors}
       collisionDetection={collision}
       autoScroll={{ threshold: { x: 0, y: 0.15 }, acceleration: 8 }}
-      onDragStart={({ active }) => {
-        setActive(active.id);
+      onDragStart={({ active, activatorEvent }) => {
         startDrag(active.id);
+        const rect = Array.from(container.current?.children || [])
+          .find((node) => node.dataset.item === active.id)
+          ?.getBoundingClientRect();
+        const { clientX: x, clientY: y } = activatorEvent;
+        // A portal handle may sit outside a compact item. Track a point inside
+        // the dragged item, preserving that grip offset for collision and drop.
+        grabOffset.current = {
+          x:
+            rect && (x < rect.left || x > rect.right)
+              ? rect.left + rect.width / 2 - x
+              : 0,
+          y:
+            rect && (y < rect.top || y > rect.bottom)
+              ? rect.top + rect.height / 2 - y
+              : 0,
+        };
+        setActive(active.id);
       }}
       onDragOver={({ over }) => setOver(over?.id || null)}
       onDragCancel={finish}
       onDragEnd={({ active, over, activatorEvent }) => {
         let target = over?.id;
         if (activatorEvent.type === "pointerdown") {
-          const point = pointerPosition.current;
+          const point = dragPoint(pointerPosition.current);
           const bounds = container.current?.getBoundingClientRect();
           const contains = (rect) =>
             point &&
@@ -320,7 +359,7 @@ function Repeater({ list, items, onChange, onReorder }) {
       }}
     >
       <SortableContext
-        items={items.map((item) => item.id)}
+        items={itemIds}
         strategy={
           list === "exhibitions"
             ? verticalListSortingStrategy

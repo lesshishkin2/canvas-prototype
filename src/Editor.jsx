@@ -88,7 +88,7 @@ export function EditorProvider({
     for (const entry of [...toolPanels.current.values()].sort(
       (a, b) => a.level - b.level,
     )) {
-      const { target, panel, setPosition } = entry;
+      const { target, panel, setPositioned } = entry;
       const rect =
         target.node.isConnected &&
         placeToolbar(
@@ -100,16 +100,18 @@ export function EditorProvider({
             .filter((parent) => parent.target.node.contains(target.node))
             .map((parent) => parent.rect),
         );
-      const next = rect
-        ? { left: rect.left, top: rect.top, width: rect.sectionWidth }
-        : null;
-      setPosition((previous) =>
-        previous?.left === next?.left &&
-        previous?.top === next?.top &&
-        previous?.width === next?.width
-          ? previous
-          : next,
-      );
+      if (rect) {
+        // Normal tools scroll natively with the document. Only the pinned
+        // section panel is viewport-fixed. Write geometry synchronously: a
+        // React render must not add a frame of lag during scroll or reflow.
+        const pinned = target.kind === "section" && rect.top === TOP;
+        panel.style.position = pinned ? "fixed" : "absolute";
+        panel.style.left = `${rect.left + (pinned ? 0 : scrollX)}px`;
+        panel.style.top = `${rect.top + (pinned ? 0 : scrollY)}px`;
+        panel.style.width =
+          rect.sectionWidth === undefined ? "" : `${rect.sectionWidth}px`;
+      }
+      setPositioned(!!rect);
       if (rect) placed.push({ target, rect });
     }
   }, []);
@@ -330,6 +332,7 @@ export function EditorProvider({
     }
     function viewportChanged() {
       cancelPendingHover();
+      layoutTools();
       if (viewportFrame !== null) return;
       viewportFrame = requestAnimationFrame(() => {
         viewportFrame = null;
@@ -346,7 +349,6 @@ export function EditorProvider({
             clientY: point.y,
           });
         }
-        layoutTools();
       });
     }
     function leave() {
@@ -553,11 +555,11 @@ function FloatingTools({
   onExitComplete,
 }) {
   const ref = useRef(null),
-    [position, setPosition] = useState(null);
+    [positioned, setPositioned] = useState(false);
   const { handles, toolPanels, layoutTools } = useEditor();
   const isSection = target.kind === "section";
   useLayoutEffect(() => {
-    const entry = { target, panel: ref.current, level, setPosition };
+    const entry = { target, panel: ref.current, level, setPositioned };
     toolPanels.current.set(level, entry);
     layoutTools();
     const observer = new ResizeObserver(layoutTools);
@@ -574,14 +576,14 @@ function FloatingTools({
     const duration = panel
       ? parseFloat(getComputedStyle(panel).transitionDuration) * 1000
       : 0;
-    if (immediate || !position || !duration) {
+    if (immediate || !positioned || !duration) {
       onExitComplete();
       return;
     }
     // transitionend normally removes it; the timeout also covers cancellation.
     const timeout = setTimeout(onExitComplete, duration + 32);
     return () => clearTimeout(timeout);
-  }, [exiting, immediate, !!position, onExitComplete]);
+  }, [exiting, immediate, positioned, onExitComplete]);
   const single = counts[target.list] === 1;
   const h = handles.current.get(target.item);
   const imgTools = (
@@ -601,16 +603,15 @@ function FloatingTools({
       data-toolbar-kind={target.kind}
       data-toolbar-level={level}
       data-owner={target.id}
-      data-positioned={position ? "true" : undefined}
+      data-positioned={positioned ? "true" : undefined}
       data-instant={immediate ? "true" : undefined}
       data-exiting={exiting ? "true" : undefined}
-      inert={exiting || hidden || !position}
-      aria-hidden={exiting || hidden || !position ? true : undefined}
+      inert={exiting || hidden || !positioned}
+      aria-hidden={exiting || hidden || !positioned ? true : undefined}
       className={`floating-tools ${isSection ? "section-tools" : ""}`}
       style={{
-        ...position,
-        visibility: position && !hidden ? "visible" : "hidden",
-        pointerEvents: hidden || exiting || !position ? "none" : undefined,
+        visibility: positioned && !hidden ? "visible" : "hidden",
+        pointerEvents: hidden || exiting || !positioned ? "none" : undefined,
       }}
       onTransitionEnd={(event) => {
         if (

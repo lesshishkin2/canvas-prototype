@@ -139,6 +139,10 @@ svg {
   position: relative;
   isolation: isolate;
 }
+.canvas-section[data-active-section] {
+  /* Keep both boundary controls above the neighbouring section's content. */
+  z-index: 1;
+}
 .site-menu {
   padding: 8px clamp(32px, 5vw, 96px);
   background: var(--paper);
@@ -903,7 +907,7 @@ svg {
 .floating-tools {
   --tools-fade-duration: 125ms;
   --tools-ease-out: var(--ease-out);
-  position: fixed;
+  position: absolute;
   z-index: 800;
   display: flex;
   align-items: center;
