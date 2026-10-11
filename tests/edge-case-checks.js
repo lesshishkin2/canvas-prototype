@@ -1,3 +1,5 @@
+import { controlsOverlap } from "./toolbar-geometry.js";
+
 const wait = (ms = 350) => new Promise((r) => setTimeout(r, ms));
 const frame = () => new Promise(requestAnimationFrame);
 const q = (s) => document.querySelector(s);
@@ -36,11 +38,6 @@ function hover(id) {
   const r = target(id).getBoundingClientRect();
   at(r.left + Math.min(30, r.width / 2), r.top + Math.min(80, r.height / 2));
 }
-function overlaps(a, b) {
-  return (
-    a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
-  );
-}
 function noOverlap() {
   const visible = panels().filter((p) => p.style.visibility === "visible");
   for (let i = 0; i < visible.length; i++) {
@@ -53,7 +50,7 @@ function noOverlap() {
       "Tools leave the viewport",
     );
     for (let j = i + 1; j < visible.length; j++)
-      assert(!overlaps(a, visible[j].getBoundingClientRect()), "Tools overlap");
+      assert(!controlsOverlap(visible[i], visible[j]), "Tools overlap");
   }
 }
 function action(id, label) {
@@ -62,6 +59,74 @@ function action(id, label) {
   );
   assert(b, `Missing ${label}`);
   b.click();
+}
+
+export async function runSectionCollisionChecks() {
+  await document.fonts.ready;
+  const results = [];
+  async function checkFrames(id, top, check) {
+    target(id).focus({ preventScroll: true });
+    window.scrollBy(0, target(id).getBoundingClientRect().top - top);
+    let visibleFrames = 0;
+    for (let i = 0; i < 12; i++) {
+      await frame();
+      const tools = panel(id);
+      if (!tools || tools.style.visibility !== "visible") continue;
+      check(tools.getBoundingClientRect());
+      noOverlap();
+      visibleFrames++;
+    }
+    assert(visibleFrames > 0, `${id} did not show tools`);
+    return visibleFrames;
+  }
+  const free = (r) =>
+    assert(
+      Math.abs(r.top - 72) < 1,
+      "Empty space between section groups displaced the card tools",
+    );
+  results.push({
+    id: "free-section-space-first-frame",
+    frames: await checkFrames("work-1", 40, free),
+  });
+  const firstTop = target("work-1").getBoundingClientRect().top;
+  const rightmost = [...document.querySelectorAll('[data-list="works"]')]
+    .filter((node) => Math.abs(node.getBoundingClientRect().top - firstTop) < 1)
+    .at(-1);
+  results.push({
+    id: "right-section-buttons-remain-protected",
+    frames: await checkFrames(rightmost.dataset.item, 40, (r) => {
+      const right = panel("collection")
+        .querySelector(".section-tools-end")
+        .getBoundingClientRect();
+      assert(
+        Math.abs(r.top - right.bottom - 6) < 1,
+        "The card overlaps section buttons or reserves unused strip padding",
+      );
+    }),
+  });
+  results.push({
+    id: "return-to-free-space-moves-tools-back-up",
+    frames: await checkFrames("work-1", 40, free),
+  });
+  // At narrower widths the logo tools meet Edit block; at 1920 they fit beside it.
+  results.push({
+    id: "logo-respects-actual-edit-block-bounds",
+    frames: await checkFrames("menu.logo", 86, (r) => {
+      const edit = panel("menu")
+        .querySelector(".section-edit-button")
+        .getBoundingClientRect();
+      const image = target("menu.logo").getBoundingClientRect();
+      const expected =
+        r.left < edit.right && r.right > edit.left
+          ? edit.bottom + 6
+          : image.top + (image.height - r.height) / 2;
+      assert(
+        Math.abs(r.top - expected) < 1,
+        "Image tools overlap Edit block or shift in its empty neighbouring space",
+      );
+    }),
+  });
+  return { viewport: { width: innerWidth, height: innerHeight }, results };
 }
 
 export async function runEdgeCaseChecks() {
@@ -142,7 +207,7 @@ export async function runEdgeCaseChecks() {
   assert(location.href === href, "Link demo navigates");
   results.push({ id: "displaced-link-access", result: "passed" });
 
-  // The section becomes a third obstacle while scrolled under the topbar.
+  // Empty space in the section strip must not become a third obstacle.
   hover("edge-narrow.image");
   await wait();
   // Pin ownership with keyboard focus while this case tests layout during scroll.
@@ -155,9 +220,10 @@ export async function runEdgeCaseChecks() {
     c = panel("edge-narrow.image").getBoundingClientRect();
   assert(
     Math.abs(a.top - q(".editor-topbar").getBoundingClientRect().bottom) < 1 &&
-      Math.abs(b.top - a.bottom - 6) < 1 &&
+      Math.abs(b.top - target("edge-narrow").getBoundingClientRect().top - 8) <
+        1 &&
       Math.abs(c.top - b.bottom - 6) < 1,
-    "Three-level narrow stack lost spacing on scroll",
+    "Transparent section gap displaced the card, or image lost its 6px gap",
   );
   hover("edge-link.cta");
   await wait();

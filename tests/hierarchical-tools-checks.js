@@ -1,3 +1,5 @@
+import { controlsOverlap } from "./toolbar-geometry.js";
+
 const wait = (ms = 350) => new Promise((resolve) => setTimeout(resolve, ms));
 const frame = () => new Promise(requestAnimationFrame);
 const query = (s) => document.querySelector(s);
@@ -50,14 +52,8 @@ function noOverlaps() {
       "Panel escaped the viewport",
     );
     for (let j = i + 1; j < panels.length; j++) {
-      const b = panels[j].getBoundingClientRect();
       assert(
-        !(
-          a.left < b.right &&
-          a.right > b.left &&
-          a.top < b.bottom &&
-          a.bottom > b.top
-        ),
+        !controlsOverlap(panels[i], panels[j]),
         "Parent and child panels overlap",
       );
     }
@@ -233,7 +229,7 @@ export async function runHierarchicalToolsChecks() {
       tool(id).getBoundingClientRect(),
     );
     assert(
-      Math.abs(rects[1].top - rects[0].bottom - 6) < 1 &&
+      Math.abs(rects[1].top - card().getBoundingClientRect().top - 8) < 1 &&
         Math.abs(
           rects[2].top +
             rects[2].height / 2 -

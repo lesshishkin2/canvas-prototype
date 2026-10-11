@@ -1,3 +1,5 @@
+import { controlsOverlap } from "./toolbar-geometry.js";
+
 // Browser checks sample rendered frames, including the first visible frame.
 const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 const frame = () => new Promise(requestAnimationFrame);
@@ -106,15 +108,8 @@ export async function runToolbarMotionChecks() {
       const visible = panels().filter((p) => p.style.visibility === "visible");
       for (let i = 0; i < visible.length; i++)
         for (let j = i + 1; j < visible.length; j++) {
-          const a = visible[i].getBoundingClientRect(),
-            b = visible[j].getBoundingClientRect();
           assert(
-            !(
-              a.left < b.right &&
-              a.right > b.left &&
-              a.top < b.bottom &&
-              a.bottom > b.top
-            ),
+            !controlsOverlap(visible[i], visible[j]),
             "Ancestor and child tools overlap",
           );
         }

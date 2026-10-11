@@ -98,7 +98,7 @@ export function EditorProvider({
           { width: innerWidth, height: innerHeight },
           placed
             .filter((parent) => parent.target.node.contains(target.node))
-            .map((parent) => parent.rect),
+            .flatMap((parent) => parent.obstacles),
         );
       if (rect) {
         // Normal tools scroll natively with the document. Only the pinned
@@ -112,7 +112,17 @@ export function EditorProvider({
           rect.sectionWidth === undefined ? "" : `${rect.sectionWidth}px`;
       }
       setPositioned(!!rect);
-      if (rect) placed.push({ target, rect });
+      if (rect) {
+        // The section strip is transparent. Only its visible button groups
+        // occupy space; descendants can share the empty part of that row.
+        const obstacles =
+          target.kind === "section"
+            ? Array.from(panel.querySelectorAll(".tool-group"), (group) =>
+                group.getBoundingClientRect(),
+              )
+            : [rect];
+        placed.push({ target, obstacles });
+      }
     }
   }, []);
   const choose = useCallback((target, immediate = false) => {
