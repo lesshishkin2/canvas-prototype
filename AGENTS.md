@@ -101,3 +101,7 @@ At activation, section and item toolbars measure their real individual button re
 Do not try to push a large image whose top is already clipped under the editor header entirely below a pinned toolbar: that would insert potentially hundreds of pixels while scrolled. Such content keeps existing overlay placement. Do not accumulate padding as new content scrolls under the same toolbar. This is temporary editor UI, never content data or persistent storage. The first geometry change is synchronous before the toolbar's existing fade; no padding/position transition competes with hover hit-testing.
 
 Run `tests/toolbar-clearance-checks.js` for both mouse and touch, plus the mobile and drag regressions. The tests cover content-relative 50% coverage of large and small images, including exactly 50%, section and card activation, text edit retention, restoration, and original inline padding.
+
+## Hero content
+
+The hero starts with its eyebrow and headline, without a separate FORMA masthead, gallery/location label, or divider. Keep the logo in the navigation and the footer branding.

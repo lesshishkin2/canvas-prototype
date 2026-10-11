@@ -324,24 +324,6 @@ svg {
     linear-gradient(0deg, rgba(12, 19, 15, 0.55), transparent 55%);
   pointer-events: none;
 }
-.site-masthead {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-bottom: 26px;
-  border-bottom: 1px solid #f7f6ec50;
-  gap: 40px;
-}
-.wordmark {
-  font-size: 32px;
-  letter-spacing: 0.08em;
-  font-weight: 500;
-}
-.masthead-note {
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.12em;
-}
 .hero-body {
   padding-top: 73px;
   flex: 1;
@@ -1519,17 +1501,6 @@ body[data-editor-input="touch"]
   .hero {
     min-height: 650px;
     padding: 48px 20px;
-  }
-  .site-masthead {
-    flex-wrap: wrap;
-    gap: 12px;
-    padding-bottom: 20px;
-  }
-  .wordmark {
-    font-size: 28px;
-  }
-  .masthead-note {
-    font-size: 11px;
   }
   .hero-body {
     padding-top: 48px;

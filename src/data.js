@@ -1,7 +1,5 @@
 export const initialContent = {
   "menu.login": "Log in",
-  "hero.brand": "FORMA",
-  "hero.note": "НЕЗАВИСИМАЯ ГАЛЕРЕЯ · МОСКВА",
   "hero.eyebrow": "ИСКУССТВО БЫТЬ ЗДЕСЬ",
   "hero.title": "Новый взгляд\nна привычное.",
   "hero.description":

@@ -595,10 +595,6 @@ export function App() {
             draggable="false"
           />
           <div className="hero-shade" />
-          <div className="site-masthead">
-            {text("hero.brand", "wordmark")}
-            {text("hero.note", "masthead-note")}
-          </div>
           <div className="hero-body">
             {text("hero.eyebrow", "eyebrow")}
             {text("hero.title", "hero-title", "h1")}
