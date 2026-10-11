@@ -1034,11 +1034,6 @@ svg {
   filter: none;
   max-width: none;
 }
-/* This compact menu deliberately sits under its section tools. Keep the
-   underlying login button from showing through as another toolbar control. */
-.section-tools[data-owner="menu"] {
-  background: var(--gray-700);
-}
 .section-tools > .tool-button,
 .section-tools-end > .tool-button {
   height: 28px;
