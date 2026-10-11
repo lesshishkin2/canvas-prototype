@@ -1154,8 +1154,8 @@ body[data-editor-mode="dragging"] [data-kind="image"]::after {
   border-radius: var(--tool-radius);
 }
 .tool-button svg {
-  width: 16px;
-  height: 16px;
+  width: 18px;
+  height: 18px;
   stroke-width: 1.75;
   pointer-events: none;
 }
@@ -1372,10 +1372,6 @@ body[data-editor-mode="dragging"] .section-divider {
 .editor-menu svg {
   width: 20px;
   height: 20px;
-}
-body[data-editor-input="touch"] .tool-button svg {
-  width: 18px;
-  height: 18px;
 }
 body[data-editor-input="touch"] .floating-tools[data-positioned="true"] {
   transition: opacity var(--tools-fade-duration) var(--tools-ease-out);
