@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { TOP } from "./toolbar-layout";
+import { getViewportBounds } from "./viewport";
 
 // One tooltip across mouse and keyboard; neighbouring tools share the warm delay.
 export function Tooltips() {
@@ -10,6 +10,11 @@ export function Tooltips() {
   const [position, setPosition] = useState(null);
   useEffect(() => {
     const enter = (event) => {
+      if (
+        event.pointerType === "touch" ||
+        document.body.dataset.editorInput === "touch"
+      )
+        return;
       const button = event.target.closest?.(".tool-button");
       const keyboard = event.type === "focusin";
       if (!button || (keyboard && !button.matches(":focus-visible"))) return;
@@ -60,17 +65,15 @@ export function Tooltips() {
       }
       const a = button.getBoundingClientRect(),
         b = ref.current.getBoundingClientRect();
+      const bounds = getViewportBounds();
       const left = Math.max(
-        8,
-        Math.min(
-          a.left + (a.width - b.width) / 2,
-          document.documentElement.clientWidth - b.width - 8,
-        ),
+        bounds.left + 8,
+        Math.min(a.left + (a.width - b.width) / 2, bounds.right - b.width - 8),
       );
       const top =
-        a.bottom + 8 + b.height <= innerHeight - 8
+        a.bottom + 8 + b.height <= bounds.bottom - 8
           ? a.bottom + 8
-          : Math.max(TOP + 4, a.top - b.height - 8);
+          : Math.max(bounds.top + 4, a.top - b.height - 8);
       setPosition((old) =>
         old?.left === left && old?.top === top ? old : { left, top },
       );

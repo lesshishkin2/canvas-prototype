@@ -38,6 +38,7 @@ import {
 import "@fontsource-variable/inter";
 import "@fontsource-variable/cormorant-garamond";
 import { useCanvasMotion } from "./useCanvasMotion";
+import { getViewportBounds } from "./viewport";
 
 const listStyles = {
   menu: { item: "menu-item", container: "menu-list", label: "Пункт меню" },
@@ -305,13 +306,16 @@ function SortableItem({ item, list, count, onChange, over, active }) {
 }
 function Repeater({ list, items, onChange, onReorder }) {
   const Container = list === "menu" ? "ul" : "div";
-  const { startDrag, stopDrag, pointerPosition } = useEditor(),
+  const { startDrag, stopDrag, pointerPosition, inputMode, narrow } =
+      useEditor(),
     container = useRef(null);
   // A new array on each hover render makes useSortable disable transitions.
   const itemIds = useMemo(() => items.map((item) => item.id), [items]);
   const grabOffset = useRef({ x: 0, y: 0 });
   const dragPoint = useCallback((point) => {
-    if (!point || point.y < 66) return point;
+    const viewport = getViewportBounds();
+    if (!point || point.y < viewport.top || point.y > viewport.bottom)
+      return point;
     const projected = {
       x: point.x + grabOffset.current.x,
       y: point.y + grabOffset.current.y,
@@ -321,7 +325,7 @@ function Repeater({ list, items, onChange, onReorder }) {
       r &&
       p.x >= r.left &&
       p.x <= r.right &&
-      p.y >= Math.max(66, r.top) &&
+      p.y >= Math.max(viewport.top, r.top) &&
       p.y <= r.bottom;
     // Also accept a direct drop on a label: moving up from an external handle
     // must not reject the item just because the projected grip is above it.
@@ -344,8 +348,8 @@ function Repeater({ list, items, onChange, onReorder }) {
         p &&
         (p.x < r.left ||
           p.x > r.right ||
-          p.y < Math.max(66, r.top) ||
-          p.y > r.bottom)
+          p.y < Math.max(getViewportBounds().top, r.top) ||
+          p.y > Math.min(getViewportBounds().bottom, r.bottom))
       )
         return [];
       if (p) {
@@ -368,16 +372,20 @@ function Repeater({ list, items, onChange, onReorder }) {
     [dragPoint],
   );
   const activeItem = items.find((item) => item.id === active);
-  const finish = () => {
+  const finish = (selectedId = null) => {
     setActive(null);
     setOver(null);
-    stopDrag();
+    stopDrag(selectedId);
   };
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={collision}
-      autoScroll={{ threshold: { x: 0, y: 0.15 }, acceleration: 8 }}
+      autoScroll={
+        inputMode === "touch"
+          ? false
+          : { threshold: { x: 0, y: 0.15 }, acceleration: 8 }
+      }
       onDragStart={({ active, activatorEvent }) => {
         startDrag(active.id);
         const rect = Array.from(container.current?.children || [])
@@ -399,7 +407,7 @@ function Repeater({ list, items, onChange, onReorder }) {
         setActive(active.id);
       }}
       onDragOver={({ over }) => setOver(over?.id || null)}
-      onDragCancel={finish}
+      onDragCancel={() => finish()}
       onDragEnd={({ active, over, activatorEvent }) => {
         let target = over?.id;
         if (activatorEvent.type === "pointerdown") {
@@ -412,7 +420,13 @@ function Repeater({ list, items, onChange, onReorder }) {
             point.x <= rect.right &&
             point.y >= rect.top &&
             point.y <= rect.bottom;
-          if (!contains(bounds) || point.y < 66) target = null;
+          const viewport = getViewportBounds();
+          if (
+            !contains(bounds) ||
+            point.y < viewport.top ||
+            point.y > viewport.bottom
+          )
+            target = null;
           // A quick release may precede dnd-kit's first collision measurement.
           // Resolve only a directly hit sibling, within the original list.
           else if (!target || target === active.id) {
@@ -424,13 +438,13 @@ function Repeater({ list, items, onChange, onReorder }) {
           }
         }
         if (target) onReorder(list, active.id, target);
-        finish();
+        finish(target ? active.id : null);
       }}
     >
       <SortableContext
         items={itemIds}
         strategy={
-          list === "exhibitions"
+          list === "exhibitions" || (narrow && list !== "menu")
             ? verticalListSortingStrategy
             : rectSortingStrategy
         }

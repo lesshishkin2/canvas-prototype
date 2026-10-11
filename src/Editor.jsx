@@ -22,10 +22,26 @@ import {
   IconTrash,
   IconArrowsMove,
   IconArrowUpRight,
+  IconDotsVertical,
 } from "@tabler/icons-react";
-import { ChevronLeft, ChevronDown, Settings, Palette, Eye } from "lucide-react";
-import { placeToolbar, TOP, TOOL_INSET } from "./toolbar-layout";
+import {
+  ChevronLeft,
+  ChevronDown,
+  Settings,
+  Palette,
+  Eye,
+  MoreVertical,
+} from "lucide-react";
+import { placeToolbar, TOOL_INSET } from "./toolbar-layout";
 import { Tooltips } from "./Tooltip";
+import {
+  getViewportBounds,
+  intersectsViewport,
+  syncViewport,
+  revealCaret,
+} from "./viewport";
+import { useCanvasTouch, useTouchAutoScroll } from "./useCanvasTouch";
+import { EditorMenu } from "./EditorMenu";
 
 const EditorContext = createContext(null);
 export const useEditor = () => useContext(EditorContext);
@@ -71,7 +87,16 @@ export function EditorProvider({
   const [active, setActive] = useState(null),
     [immediateExit, setImmediateExit] = useState(false),
     [editing, setEditing] = useState(null),
-    [dragging, setDragging] = useState(null);
+    [dragging, setDragging] = useState(null),
+    [inputMode, setInputMode] = useState(() =>
+      matchMedia("(pointer: coarse)").matches ? "touch" : "mouse",
+    ),
+    [menu, setMenu] = useState(null),
+    [narrow, setNarrow] = useState(
+      () => matchMedia("(max-width: 767px)").matches,
+    );
+  const inputRef = useRef(inputMode),
+    menuRef = useRef(null);
   const activeRef = useRef(null),
     editingRef = useRef(null),
     dragRef = useRef(null),
@@ -83,19 +108,38 @@ export function EditorProvider({
   const handles = useRef(new Map());
   const toolPanels = useRef(new Map());
   const targets = useMemo(() => toolTargets(active), [active]);
+  useEffect(() => {
+    const query = matchMedia("(max-width: 767px)");
+    const update = () => setNarrow(query.matches);
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, []);
   const layoutTools = useCallback(() => {
+    const viewport = {
+      ...getViewportBounds(),
+      touch: inputRef.current === "touch",
+    };
+    const ownerVisible =
+      !viewport.touch ||
+      (activeRef.current?.node.isConnected &&
+        intersectsViewport(
+          activeRef.current.node.getBoundingClientRect(),
+          viewport,
+        ));
     const placed = [];
     for (const entry of [...toolPanels.current.values()].sort(
       (a, b) => a.level - b.level,
     )) {
-      const { target, panel, setPositioned } = entry;
+      const { target, panel, setPositioned, hidden } = entry;
       const rect =
+        !hidden &&
+        ownerVisible &&
         target.node.isConnected &&
         placeToolbar(
           target,
           target.node.getBoundingClientRect(),
           panel.getBoundingClientRect(),
-          { width: innerWidth, height: innerHeight },
+          viewport,
           placed
             .filter((parent) => parent.target.node.contains(target.node))
             .flatMap((parent) => parent.obstacles),
@@ -104,7 +148,7 @@ export function EditorProvider({
         // Normal tools scroll natively with the document. Only the pinned
         // section panel is viewport-fixed. Write geometry synchronously: a
         // React render must not add a frame of lag during scroll or reflow.
-        const pinned = target.kind === "section" && rect.top === TOP;
+        const pinned = target.kind === "section" && rect.top === viewport.top;
         panel.style.position = pinned ? "fixed" : "absolute";
         panel.style.left = `${rect.left + (pinned ? 0 : scrollX)}px`;
         panel.style.top = `${rect.top + (pinned ? 0 : scrollY)}px`;
@@ -149,17 +193,32 @@ export function EditorProvider({
     cancelHoverTimers();
     choose(null, true);
   }, [choose, cancelHoverTimers]);
+  const closeMenu = useCallback(() => {
+    menuRef.current = null;
+    setMenu(null);
+  }, []);
+  const toggleMenu = useCallback(
+    (next) => {
+      cancelHoverTimers();
+      const value = menuRef.current?.anchor === next.anchor ? null : next;
+      menuRef.current = value;
+      setMenu(value);
+    },
+    [cancelHoverTimers],
+  );
   const suppress = useCallback(() => {
     locked.current = true;
     clear();
   }, [clear]);
   const startEditing = useCallback(
     (id) => {
+      if (editingRef.current === id) return;
+      closeMenu();
       editingRef.current = id;
       setEditing(id);
       clear();
     },
-    [clear],
+    [clear, closeMenu],
   );
   const stopEditing = useCallback(() => {
     editingRef.current = null;
@@ -174,15 +233,58 @@ export function EditorProvider({
     },
     [cancelHoverTimers, onBeforeDrag],
   );
-  const stopDrag = useCallback(() => {
-    handlePressed.current = false;
-    dragRef.current = null;
-    setDragging(null);
-    suppress();
-  }, [suppress]);
+  const stopDrag = useCallback(
+    (selectedId) => {
+      handlePressed.current = false;
+      dragRef.current = null;
+      setDragging(null);
+      suppress();
+      if (selectedId && inputRef.current === "touch") {
+        const node = document.querySelector(
+          `[data-item="${CSS.escape(selectedId)}"]`,
+        );
+        if (node) {
+          locked.current = false;
+          choose(readTarget(node));
+        }
+      }
+    },
+    [suppress, choose],
+  );
+  const selectTouch = useCallback(
+    (target) => {
+      locked.current = false;
+      cancelHoverTimers();
+      choose(target);
+    },
+    [choose, cancelHoverTimers],
+  );
+  useCanvasTouch({
+    inputRef,
+    setInputMode,
+    activeRef,
+    editingRef,
+    dragRef,
+    handlePressed,
+    menuRef,
+    closeMenu,
+    cancelHoverTimers,
+    pointerPosition: lastPoint,
+    readTarget,
+    startEditing,
+    clear,
+    select: selectTouch,
+  });
+  useTouchAutoScroll(dragging, inputMode === "touch", lastPoint);
+  useLayoutEffect(() => {
+    document.body.dataset.editorInput = inputMode;
+    syncViewport();
+    layoutTools();
+  }, [inputMode, editing, menu, layoutTools]);
   useEffect(() => {
     let viewportFrame = null;
     function resolve(event) {
+      if (inputRef.current === "touch" || menuRef.current) return;
       if (event.type === "pointermove") {
         if (event.buttons === 0 && !dragRef.current)
           handlePressed.current = false;
@@ -251,7 +353,12 @@ export function EditorProvider({
           if (
             event.clientX >= Math.max(owner.left, tools.left) &&
             event.clientX <= Math.min(owner.right, tools.right + TOOL_INSET) &&
-            event.clientY >= Math.max(TOP, owner.top, tools.top - TOOL_INSET) &&
+            event.clientY >=
+              Math.max(
+                getViewportBounds().top,
+                owner.top,
+                tools.top - TOOL_INSET,
+              ) &&
             event.clientY <= Math.min(owner.bottom, tools.bottom)
           ) {
             cancelHoverTimers();
@@ -342,7 +449,9 @@ export function EditorProvider({
     }
     function viewportChanged() {
       cancelPendingHover();
+      syncViewport();
       layoutTools();
+      if (inputRef.current === "touch") return;
       if (viewportFrame !== null) return;
       viewportFrame = requestAnimationFrame(() => {
         viewportFrame = null;
@@ -362,6 +471,7 @@ export function EditorProvider({
       });
     }
     function leave() {
+      if (inputRef.current === "touch") return;
       lastPoint.current = null;
       cancelHoverTimers();
       hideTimer.current = setTimeout(() => {
@@ -370,12 +480,18 @@ export function EditorProvider({
       }, HOVER_CLOSE);
     }
     function pointerDown(event) {
+      if (event.defaultPrevented || !(event.target instanceof Element)) return;
       cancelHoverTimers();
       const handle = event.target.closest(".drag-handle");
       if (handle && handle.getAttribute("aria-disabled") !== "true") {
         handlePressed.current = true;
       }
-      if (editingRef.current && !event.target.closest("[contenteditable]"))
+      if (
+        editingRef.current &&
+        !event.target.closest(
+          '[contenteditable="plaintext-only"], [data-finish-editing]',
+        )
+      )
         document.activeElement?.blur();
     }
     function releaseHandle(event) {
@@ -387,16 +503,35 @@ export function EditorProvider({
     }
     function windowBlur() {
       lastPoint.current = null;
+      closeMenu();
       clear();
     }
+    function viewportResized() {
+      viewportChanged();
+      if (inputRef.current === "touch") revealCaret();
+    }
+    function pageScrolled(event) {
+      if (
+        event.target instanceof Element &&
+        event.target.closest(".editor-menu")
+      )
+        return;
+      if (menuRef.current) closeMenu();
+      viewportChanged();
+    }
+    const headerObserver = new ResizeObserver(viewportChanged);
+    const header = document.querySelector(".editor-topbar");
+    if (header) headerObserver.observe(header);
     document.addEventListener("pointerup", releaseHandle, true);
     document.addEventListener("pointercancel", releaseHandle, true);
     document.addEventListener("pointermove", resolve);
     document.addEventListener("focusin", resolve);
     document.addEventListener("pointerdown", pointerDown, true);
     document.documentElement.addEventListener("pointerleave", leave);
-    window.addEventListener("scroll", viewportChanged, true);
-    window.addEventListener("resize", viewportChanged);
+    window.addEventListener("scroll", pageScrolled, true);
+    window.addEventListener("resize", viewportResized);
+    window.visualViewport?.addEventListener("resize", viewportResized);
+    window.visualViewport?.addEventListener("scroll", viewportChanged);
     window.addEventListener("canvaslayout", viewportChanged);
     window.addEventListener("blur", windowBlur);
     document.addEventListener("visibilitychange", visibilityChange);
@@ -409,20 +544,32 @@ export function EditorProvider({
       document.removeEventListener("focusin", resolve);
       document.removeEventListener("pointerdown", pointerDown, true);
       document.documentElement.removeEventListener("pointerleave", leave);
-      window.removeEventListener("scroll", viewportChanged, true);
-      window.removeEventListener("resize", viewportChanged);
+      headerObserver.disconnect();
+      window.removeEventListener("scroll", pageScrolled, true);
+      window.removeEventListener("resize", viewportResized);
+      window.visualViewport?.removeEventListener("resize", viewportResized);
+      window.visualViewport?.removeEventListener("scroll", viewportChanged);
       window.removeEventListener("canvaslayout", viewportChanged);
       window.removeEventListener("blur", windowBlur);
       document.removeEventListener("visibilitychange", visibilityChange);
     };
-  }, [choose, clear, cancelPendingHover, cancelHoverTimers, layoutTools]);
+  }, [
+    choose,
+    clear,
+    cancelPendingHover,
+    cancelHoverTimers,
+    layoutTools,
+    closeMenu,
+  ]);
   useEffect(() => {
     document.body.dataset.editorMode = dragging
       ? "dragging"
       : editing
         ? "editing"
         : active
-          ? "hover"
+          ? inputMode === "touch"
+            ? "selected"
+            : "hover"
           : "idle";
     document
       .querySelectorAll("[data-active-section]")
@@ -444,7 +591,7 @@ export function EditorProvider({
         node.removeAttribute("data-target-hover"),
       );
     };
-  }, [active, targets, editing, dragging]);
+  }, [active, targets, editing, dragging, inputMode]);
   const context = {
     active,
     editing,
@@ -458,17 +605,27 @@ export function EditorProvider({
     toolPanels,
     layoutTools,
     pointerPosition: lastPoint,
+    inputMode,
+    narrow,
+    menu,
+    toggleMenu,
+    closeMenu,
   };
   return (
     <EditorContext.Provider value={context}>
       {children}
       <Tooltips />
+      {menu && <EditorMenu menu={menu} onClose={closeMenu} />}
       {targets.map((target, level) => (
         <ToolLayer
           key={level}
           level={level}
           target={editing ? null : target}
-          hidden={!!dragging}
+          hidden={
+            !!dragging ||
+            (menu?.kind === "section" && level > 0) ||
+            menu?.kind === "topbar"
+          }
           immediate={
             immediateExit || !!editing || !!dragging || !!active?.instant
           }
@@ -566,10 +723,18 @@ function FloatingTools({
 }) {
   const ref = useRef(null),
     [positioned, setPositioned] = useState(false);
-  const { handles, toolPanels, layoutTools } = useEditor();
+  const {
+    handles,
+    toolPanels,
+    layoutTools,
+    inputMode,
+    narrow,
+    menu,
+    toggleMenu,
+  } = useEditor();
   const isSection = target.kind === "section";
   useLayoutEffect(() => {
-    const entry = { target, panel: ref.current, level, setPositioned };
+    const entry = { target, panel: ref.current, level, setPositioned, hidden };
     toolPanels.current.set(level, entry);
     layoutTools();
     const observer = new ResizeObserver(layoutTools);
@@ -579,7 +744,7 @@ function FloatingTools({
       toolPanels.current.delete(level);
       observer.disconnect();
     };
-  }, [target, level, toolPanels, layoutTools]);
+  }, [target, level, toolPanels, layoutTools, hidden, inputMode]);
   useLayoutEffect(() => {
     if (!exiting) return;
     const panel = ref.current;
@@ -651,27 +816,49 @@ function FloatingTools({
               <span>Edit block</span>
             </ToolButton>
           </div>
-          {target.hasImage && (
-            <div className="section-background-tools">{imgTools}</div>
+          {inputMode === "touch" || narrow ? (
+            <div className="tool-group section-tools-end">
+              <ToolButton
+                label="Другие действия секции"
+                aria-haspopup="menu"
+                aria-expanded={menu?.targetId === target.id}
+                onClick={(event) =>
+                  toggleMenu({
+                    kind: "section",
+                    targetId: target.id,
+                    anchor: event.currentTarget,
+                    hasImage: target.hasImage,
+                  })
+                }
+              >
+                <IconDotsVertical aria-hidden="true" />
+              </ToolButton>
+            </div>
+          ) : (
+            <>
+              {target.hasImage && (
+                <div className="section-background-tools">{imgTools}</div>
+              )}
+              <div className="section-tools-end">
+                <div className="tool-group">
+                  <ToolButton label="Видимость секции · демо">
+                    <IconEye aria-hidden="true" />
+                  </ToolButton>
+                  <ToolButton label="Удалить секцию · демо">
+                    <IconTrash aria-hidden="true" />
+                  </ToolButton>
+                </div>
+                <div className="tool-group">
+                  <ToolButton label="Секция выше · демо">
+                    <IconArrowUp aria-hidden="true" />
+                  </ToolButton>
+                  <ToolButton label="Секция ниже · демо">
+                    <IconArrowDown aria-hidden="true" />
+                  </ToolButton>
+                </div>
+              </div>
+            </>
           )}
-          <div className="section-tools-end">
-            <div className="tool-group">
-              <ToolButton label="Видимость секции · демо">
-                <IconEye aria-hidden="true" />
-              </ToolButton>
-              <ToolButton label="Удалить секцию · демо">
-                <IconTrash aria-hidden="true" />
-              </ToolButton>
-            </div>
-            <div className="tool-group">
-              <ToolButton label="Секция выше · демо">
-                <IconArrowUp aria-hidden="true" />
-              </ToolButton>
-              <ToolButton label="Секция ниже · демо">
-                <IconArrowDown aria-hidden="true" />
-              </ToolButton>
-            </div>
-          </div>
         </>
       ) : (
         <>
@@ -744,7 +931,7 @@ export function Editable({
   label,
 }) {
   const ref = useRef(null),
-    { startEditing, stopEditing } = useEditor();
+    { startEditing, stopEditing, editing, inputMode } = useEditor();
   useLayoutEffect(() => {
     if (
       ref.current &&
@@ -763,7 +950,9 @@ export function Editable({
       data-field={id}
       data-empty={!value.trim() || undefined}
       data-placeholder="Введите текст"
-      contentEditable="plaintext-only"
+      contentEditable={
+        inputMode !== "touch" || editing === id ? "plaintext-only" : false
+      }
       suppressContentEditableWarning
       role="textbox"
       aria-label={
@@ -772,7 +961,9 @@ export function Editable({
       aria-multiline={!singleLine}
       tabIndex={0}
       spellCheck="false"
-      onFocus={() => startEditing(id)}
+      onFocus={(event) => {
+        if (event.currentTarget.isContentEditable) startEditing(id);
+      }}
       onInput={commit}
       onBlur={(e) => {
         commit(e);
@@ -847,6 +1038,8 @@ export function Section({ id, hasImage = false, className = "", children }) {
   );
 }
 export function Topbar() {
+  const { editing, inputMode, menu, toggleMenu } = useEditor();
+  const done = !!editing && inputMode === "touch";
   return (
     <header className="editor-topbar">
       <div className="topbar-left">
@@ -859,35 +1052,68 @@ export function Topbar() {
         </button>
         <button className="page-switch" title="Переключение страниц · демо">
           <span>
-            Page: <strong>Main page</strong>
+            <span className="desktop-only">Page: </span>
+            <strong>Main page</strong>
           </span>
           <ChevronDown size={16} aria-hidden="true" />
         </button>
       </div>
       <div className="topbar-right">
         <button
-          className="bare-button"
+          className="bare-button desktop-only"
           title="Настройки страницы · демо"
           aria-label="Настройки страницы · демо"
         >
           <Settings size={20} aria-hidden="true" />
         </button>
         <button
-          className="bare-button"
+          className="bare-button desktop-only"
           title="Настройки темы · демо"
           aria-label="Настройки темы · демо"
         >
           <Palette size={20} aria-hidden="true" />
         </button>
-        <button className="preview-button" title="Предпросмотр · демо">
+        <button
+          className="preview-button desktop-only"
+          title="Предпросмотр · демо"
+        >
           <Eye size={19} aria-hidden="true" />
           Preview
         </button>
         <button
           className="save-button"
-          title="Демонстрация: изменения не сохраняются"
+          title={
+            done
+              ? "Завершить редактирование"
+              : "Демонстрация: изменения не сохраняются"
+          }
+          data-finish-editing={done || undefined}
+          onPointerDown={(event) => {
+            if (done) event.preventDefault();
+          }}
+          onClick={() => {
+            if (done) document.activeElement?.blur();
+          }}
         >
-          Save Changes
+          {done ? (
+            "Готово"
+          ) : (
+            <>
+              <span className="desktop-only">Save Changes</span>
+              <span className="mobile-only">Save</span>
+            </>
+          )}
+        </button>
+        <button
+          className="bare-button mobile-only"
+          aria-label="Другие действия редактора"
+          aria-haspopup="menu"
+          aria-expanded={menu?.kind === "topbar"}
+          onClick={(event) =>
+            toggleMenu({ kind: "topbar", anchor: event.currentTarget })
+          }
+        >
+          <MoreVertical size={20} aria-hidden="true" />
         </button>
       </div>
     </header>
