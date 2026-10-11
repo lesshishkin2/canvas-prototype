@@ -61,11 +61,99 @@ const listStyles = {
     item: "edge-card",
     container: "edge-grid",
     label: "Пограничный сценарий",
+    variants: true,
+  },
+  edgeSamples: {
+    item: "edge-card",
+    container: "edge-grid edge-samples",
+    label: "Пограничный сценарий",
+    variants: true,
   },
 };
 
 const itemClass = (list, item) =>
-  `${listStyles[list].item}${list === "edges" ? ` edge-${item.variant}` : ""}`;
+  `${listStyles[list].item}${listStyles[list].variants ? ` edge-${item.variant}` : ""}`;
+
+function EdgeCaseView({ item, ghost, text, link }) {
+  const picture = (key = "image", className = "") => (
+    <figure
+      className={`edge-image ${className}`}
+      data-editor-target={ghost ? undefined : `${item.id}.${key}`}
+      data-kind={ghost ? undefined : "image"}
+      tabIndex={ghost ? undefined : 0}
+      aria-label={`Изображение: ${item.title}${key === "image2" ? " · второе" : ""}`}
+    >
+      <img src={item[key]} alt={item.title} draggable="false" />
+    </figure>
+  );
+  if (item.variant === "compact")
+    return (
+      <>
+        {text("meta", "edge-meta")}
+        {text("title", "edge-compact-title")}
+        {link("cta", "edge-compact-link")}
+      </>
+    );
+
+  let sample;
+  switch (item.variant) {
+    case "tiny":
+      sample = (
+        <div className="edge-tiny-stage">
+          {picture("image", "edge-tiny-image")}
+          {text("caption", "edge-sample-caption")}
+        </div>
+      );
+      break;
+    case "adjacent":
+      sample = (
+        <div className="edge-image-pair">
+          {picture()}
+          {picture("image2")}
+        </div>
+      );
+      break;
+    case "links":
+      sample = (
+        <div className="edge-links-stage">
+          <div className="edge-nearby-links">
+            {["cta", "cta2", "cta3", "cta4"].map((key) => (
+              <div key={key}>{link(key, "edge-sample-link")}</div>
+            ))}
+          </div>
+        </div>
+      );
+      break;
+    case "empty":
+      sample = (
+        <div className="edge-empty-stage">
+          {text("emptyText", "edge-empty-text", "p")}
+          {link("cta", "edge-cta")}
+        </div>
+      );
+      break;
+    case "short":
+    case "long":
+      break;
+    default:
+      sample = item.image ? (
+        picture()
+      ) : (
+        <div className="edge-link-head">{link()}</div>
+      );
+  }
+  return (
+    <>
+      {sample}
+      <div className="edge-copy">
+        {text("meta", "edge-meta")}
+        {text("title", "edge-title", "h3")}
+        {text("description", "edge-description", "p")}
+        {(item.variant === "short" || item.variant === "long") && link()}
+      </div>
+    </>
+  );
+}
 
 function ItemView({ item, list, onChange, ghost = false }) {
   if (list === "menu")
@@ -98,45 +186,26 @@ function ItemView({ item, list, onChange, ghost = false }) {
       ? "card-cta"
       : list === "studies"
         ? "study-cta"
-        : list === "edges"
+        : listStyles[list].variants
           ? "edge-cta"
           : "event-link";
-  const cta = ghost ? (
-    <div className={`canvas-link ${ctaClass}`}>
-      <span>{item.cta}</span>
-      <IconArrowUpRight />
-    </div>
-  ) : (
-    <CanvasLink
-      id={`${item.id}.cta`}
-      value={item.cta}
-      onChange={(value) => onChange(item.id, "cta", value)}
-      className={ctaClass}
-    />
-  );
-  if (list === "edges")
-    return (
-      <>
-        {item.image ? (
-          <figure
-            className="edge-image"
-            data-editor-target={ghost ? undefined : `${item.id}.image`}
-            data-kind={ghost ? undefined : "image"}
-            tabIndex={ghost ? undefined : 0}
-            aria-label={`Изображение: ${item.title}`}
-          >
-            <img src={item.image} alt={item.title} draggable="false" />
-          </figure>
-        ) : (
-          <div className="edge-link-head">{cta}</div>
-        )}
-        <div className="edge-copy">
-          {text("meta", "edge-meta")}
-          {text("title", "edge-title", "h3")}
-          {text("description", "edge-description", "p")}
-        </div>
-      </>
+  const link = (key = "cta", className = ctaClass) =>
+    ghost ? (
+      <div className={`canvas-link ${className}`}>
+        <span>{item[key]}</span>
+        <IconArrowUpRight />
+      </div>
+    ) : (
+      <CanvasLink
+        id={`${item.id}.${key}`}
+        value={item[key]}
+        onChange={(value) => onChange(item.id, key, value)}
+        className={className}
+      />
     );
+  const cta = link();
+  if (listStyles[list].variants)
+    return <EdgeCaseView item={item} ghost={ghost} text={text} link={link} />;
   if (list === "studies")
     return (
       <>
@@ -467,6 +536,7 @@ export function App() {
         studies: lists.studies.length,
         exhibitions: lists.exhibitions.length,
         edges: lists.edges.length,
+        edgeSamples: lists.edgeSamples.length,
       }}
     >
       <Topbar />
@@ -557,6 +627,12 @@ export function App() {
             list="edges"
             items={lists.edges}
             onChange={changeItem("edges")}
+            onReorder={reorder}
+          />
+          <Repeater
+            list="edgeSamples"
+            items={lists.edgeSamples}
+            onChange={changeItem("edgeSamples")}
             onReorder={reorder}
           />
         </Section>

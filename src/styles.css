@@ -622,6 +622,92 @@ svg {
   width: 16px;
   height: 16px;
 }
+.edge-samples {
+  margin-top: clamp(24px, 2.8vw, 48px);
+}
+.edge-samples > .edge-card {
+  flex-basis: calc((100% - clamp(24px, 2.8vw, 48px)) / 2);
+}
+.edge-tiny-stage,
+.edge-links-stage,
+.edge-empty-stage {
+  padding: 48px 24px 16px;
+}
+.edge-tiny-stage {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.edge-tiny-image {
+  flex: 0 0 32px;
+  width: 32px;
+  height: 32px;
+}
+.edge-tiny-image img {
+  height: 100%;
+  aspect-ratio: 1;
+}
+.edge-sample-caption {
+  font-size: 13px;
+}
+.edge-image-pair {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 16px;
+}
+.edge-image-pair img {
+  aspect-ratio: 4 / 3;
+}
+.edge-nearby-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  max-width: 260px;
+}
+.edge-nearby-links > div {
+  max-width: 100%;
+}
+.edge-sample-link {
+  padding: 7px 10px;
+  border: 1px solid #a5b898;
+  gap: 12px;
+  font-size: 12px;
+}
+.edge-sample-link svg,
+.edge-compact-link svg {
+  width: 14px;
+  height: 14px;
+}
+.edge-empty-text {
+  margin: 0 0 12px;
+  font-size: 16px;
+  line-height: 1.5;
+}
+.edge-short .edge-cta,
+.edge-long .edge-cta {
+  margin-top: 24px;
+}
+.edge-samples > .edge-compact {
+  flex-basis: 100%;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 24px;
+  min-height: 40px;
+  padding: 8px 16px;
+}
+.edge-compact-title {
+  font-size: 13px;
+  line-height: 24px;
+}
+.edge-compact-link {
+  font-size: 12px;
+  line-height: 24px;
+  gap: 8px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
 .about {
   display: grid;
   grid-template-columns: 1fr 1fr;
