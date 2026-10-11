@@ -9,9 +9,6 @@ export default defineConfig({
     include: ["react", "react-dom/client"],
   },
   server: {
-    watch: { usePolling: true, interval: 200 },
-    host: "0.0.0.0",
-    allowedHosts: ["terminal.local"],
     warmup: {
       clientFiles: ["./src/main.jsx"],
     },
