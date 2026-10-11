@@ -1366,6 +1366,12 @@ body[data-editor-input="touch"]
   .editor-topbar .desktop-only {
     display: none;
   }
+  .section-divider button,
+  body[data-editor-input="touch"] .section-divider button {
+    width: 32px;
+    height: 32px;
+    top: -16px;
+  }
   .mobile-only {
     display: inline;
   }

@@ -804,7 +804,9 @@ function FloatingTools({
               className="tool-button section-edit-button"
             >
               <IconPencil aria-hidden="true" />
-              <span>Edit block</span>
+              <span>
+                Edit<span className="desktop-only"> block</span>
+              </span>
             </ToolButton>
           </div>
           {target.hasImage && (
