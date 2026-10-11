@@ -134,7 +134,7 @@ svg {
   isolation: isolate;
 }
 .site-menu {
-  padding: 28px clamp(32px, 5vw, 96px) 8px;
+  padding: 8px clamp(32px, 5vw, 96px);
   background: var(--paper);
   color: var(--ink);
   border-bottom: 1px solid #24272020;
@@ -1033,6 +1033,11 @@ svg {
   gap: 12px;
   filter: none;
   max-width: none;
+}
+/* This compact menu deliberately sits under its section tools. Keep the
+   underlying login button from showing through as another toolbar control. */
+.section-tools[data-owner="menu"] {
+  background: var(--gray-700);
 }
 .section-tools > .tool-button,
 .section-tools-end > .tool-button {
