@@ -30,6 +30,8 @@ For a section toolbar, collision obstacles are the actual visible button groups,
 
 The “Когда места мало” section after studies is an editable, sortable `edges` list: a wide image (centered tools with no collision), a 180 px card with a short 180 × 72 px image and zero padding (image tools collide and move below the parent by 6 px), and a link near the top-right of a card (link tools move below parent tools and below the label if needed). Keep these cases reproducible across desktop widths. `tests/edge-case-checks.js` checks their first frames, safe access, scrolling, copying, deletion, and mixed-width sorting.
 
+The “Место для действия” edge-case card puts its link-button 16 px from the top and right edges. The user decided against placing content buttons directly in card corners; preserve these insets.
+
 The “Рассмотреть ближе” section after the collection contains the independent `studies` list. Its repeatable cards have ordinary inline images, not backgrounds or item links. Card tools are exactly duplicate/delete/drag; the nested image owns only replacement/editing tools. Hovering the image, text or button preserves the parent toolbar; only the child panel changes. Keep image targets and text fields unique when duplicating, and omit editor targets from the drag preview.
 
 The user is testing tight image spacing in these cards: keep only 6 px between the image and the top/side card edges. Text retains its 20 px side inset. Do not reserve a large empty strip above the image for parent tools.

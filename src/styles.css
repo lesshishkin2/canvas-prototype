@@ -610,7 +610,7 @@ svg {
 .edge-link-head {
   display: flex;
   justify-content: flex-end;
-  padding: 38px 8px 42px;
+  padding: 16px 16px 42px;
 }
 .edge-cta {
   border: 1px solid #a5b898;
