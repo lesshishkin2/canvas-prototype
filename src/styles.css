@@ -904,6 +904,30 @@ svg {
   outline: 1px solid #a489dc;
   outline-offset: 0;
 }
+[data-kind="image"] {
+  position: relative;
+}
+[data-kind="image"]::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 125ms var(--ease-out);
+}
+[data-kind="image"][data-target-hover]::after {
+  opacity: 0.16;
+}
+[data-kind="image"]:focus-visible::after {
+  transition: none;
+}
+body[data-editor-mode="editing"] [data-kind="image"]::after,
+body[data-editor-mode="dragging"] [data-kind="image"]::after {
+  opacity: 0;
+  transition: none;
+}
 .floating-tools {
   --tools-fade-duration: 125ms;
   --tools-ease-out: var(--ease-out);

@@ -36,6 +36,8 @@ The user is testing tight image spacing in these cards: keep only 6 px between t
 
 Each studies card also contains a button with an editable label and its own link-edit demo toolbar. It is a nested link target; the parent card still has only duplicate/delete/drag.
 
+Editable standalone images (`data-kind="image"`, including the logo and inline card images) receive a subtle white overlay at 16% opacity while their contextual tools are active. Drive it from the centralized `data-target-hover` state, not independent CSS hover, so it shares hover dwell and persists while moving onto tools. Use a non-interactive, absolutely positioned pseudo-element limited to the image bounds, with a 125 ms opacity transition and the shared ease-out. Keyboard focus, reduced motion, editing and dragging bypass this fade; editing/dragging hide it. Background cards and hero images keep their existing treatment.
+
 An already open inset item/image toolbar owns a protective hover bridge across its 8 px top and right gaps. Retain it there even over a nested image, without a DOM overlay that intercepts clicks. Test actual slow pointer paths using hit-testing, not just isolated hover states.
 
 Hover appearance and target changes require 150 ms on the same candidate; preserve the current target until then. Movement inside that candidate does not restart the timer. Returning to the active target, its protective bridge or its toolbar cancels the pending change. Keep the existing 180 ms close delay. Keyboard focus and text editing respond immediately. Cancel stale pending targets on editing, pointer actions, drag, structural actions, scroll, resize, window exit and blur. Keep the rationale and current values in UX-PATTERNS.md up to date with code changes.
