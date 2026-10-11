@@ -1,4 +1,5 @@
 export const initialContent = {
+  "menu.login": "Войти",
   "hero.brand": "FORMA",
   "hero.note": "НЕЗАВИСИМАЯ ГАЛЕРЕЯ · МОСКВА",
   "hero.eyebrow": "ИСКУССТВО БЫТЬ ЗДЕСЬ",

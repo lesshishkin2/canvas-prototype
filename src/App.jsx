@@ -433,13 +433,23 @@ export function App() {
       <Topbar />
       <main className="canvas" aria-label="Canvas редактора FORMA">
         <Section id="menu" className="site-menu">
-          <nav aria-label="Меню галереи">
+          <nav className="menu-content" aria-label="Меню галереи">
+            <figure
+              className="menu-logo"
+              data-editor-target="menu.logo"
+              data-kind="image"
+              tabIndex={0}
+              aria-label="Логотип галереи FORMA"
+            >
+              <img src="/assets/forma-logo.svg" alt="FORMA" draggable="false" />
+            </figure>
             <Repeater
               list="menu"
               items={lists.menu}
               onChange={changeItem("menu")}
               onReorder={reorder}
             />
+            {link("menu.login", "menu-login")}
           </nav>
         </Section>
         <Section id="hero" hasImage className="hero">

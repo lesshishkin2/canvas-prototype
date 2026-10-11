@@ -134,17 +134,51 @@ svg {
   isolation: isolate;
 }
 .site-menu {
-  padding: 40px clamp(32px, 5vw, 96px) 28px;
+  padding: 28px clamp(32px, 5vw, 96px) 8px;
   background: var(--paper);
   color: var(--ink);
   border-bottom: 1px solid #24272020;
+}
+.menu-content {
+  display: grid;
+  grid-template-columns: 132px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 24px;
+}
+.menu-logo {
+  width: 132px;
+  height: 24px;
+  margin: 12px 0 0;
+}
+.menu-logo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.menu-logo:focus-visible {
+  outline: 2px solid var(--purple);
+  outline-offset: 3px;
+}
+.canvas-link.menu-login {
+  padding: 11px 18px;
+  min-width: 108px;
+  max-width: 180px;
+  min-height: 45px;
+  font-size: 13px;
+  line-height: 21px;
+  gap: 16px;
+  border: 1px solid var(--ink);
+  border-radius: 4px;
+  background: var(--ink);
+  color: var(--paper);
 }
 .menu-list {
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   align-items: flex-start;
-  gap: 12px 24px;
+  gap: 12px;
   padding: 0;
   margin: 0;
   list-style: none;
@@ -152,9 +186,9 @@ svg {
 .menu-item {
   position: relative;
   flex: 0 1 auto;
-  min-width: 112px;
+  min-width: 0;
   max-width: min(320px, 100%);
-  padding: 12px 16px;
+  padding: 12px 10px;
   background: var(--paper);
   text-align: center;
   color: var(--ink);
@@ -850,6 +884,7 @@ svg {
 }
 .study-card[data-target-hover],
 .study-image[data-target-hover],
+.menu-logo[data-target-hover],
 .edge-card[data-target-hover],
 .edge-image[data-target-hover],
 .artwork-card[data-target-hover],
