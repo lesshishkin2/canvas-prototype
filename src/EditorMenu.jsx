@@ -1,37 +1,15 @@
 import { useLayoutEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Settings, Palette, Eye } from "lucide-react";
-import {
-  IconPhotoUp,
-  IconPhotoEdit,
-  IconEye,
-  IconTrash,
-  IconArrowUp,
-  IconArrowDown,
-} from "@tabler/icons-react";
 import { getViewportBounds } from "./viewport";
 
 export function EditorMenu({ menu, onClose }) {
   const ref = useRef(null);
-  const entries =
-    menu.kind === "topbar"
-      ? [
-          [Settings, "Settings"],
-          [Palette, "Change theme"],
-          [Eye, "Preview"],
-        ]
-      : [
-          ...(menu.hasImage
-            ? [
-                [IconPhotoUp, "Replace background"],
-                [IconPhotoEdit, "Edit background"],
-              ]
-            : []),
-          [IconEye, "Block visibility"],
-          [IconTrash, "Delete block"],
-          [IconArrowUp, "Move block up"],
-          [IconArrowDown, "Move block down"],
-        ];
+  const entries = [
+    [Settings, "Settings"],
+    [Palette, "Change theme"],
+    [Eye, "Preview"],
+  ];
   useLayoutEffect(() => {
     const panel = ref.current;
     const layout = () => {
@@ -71,7 +49,7 @@ export function EditorMenu({ menu, onClose }) {
       className="editor-menu"
       data-editor-menu="true"
       role="menu"
-      aria-label={menu.kind === "topbar" ? "Editor actions" : "Block actions"}
+      aria-label="Editor actions"
       style={{ visibility: "hidden" }}
       onKeyDown={(event) => {
         const items = [...ref.current.querySelectorAll("button")],

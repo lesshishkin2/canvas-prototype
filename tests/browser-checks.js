@@ -85,7 +85,7 @@ async function drag(
 ) {
   const item = query(`[data-item="${from}"]`);
   await hover(item);
-  const handle = query(".drag-handle");
+  const handle = query('[data-toolbar-kind="item"] .drag-handle');
   assert(handle, "Missing drag handle");
   const h = handle.getBoundingClientRect(),
     x = h.x + h.width / 2,
@@ -337,7 +337,7 @@ export async function checkHoverDwell() {
   await hover(card);
   imagePoint();
   await wait(55);
-  const handle = query(".drag-handle"),
+  const handle = query('[data-toolbar-kind="item"] .drag-handle'),
     h = handle.getBoundingClientRect();
   pointer(handle, "pointerdown", h.x + 10, h.y + 13, 1);
   pointer(document, "pointermove", h.x + 20, h.y + 13, 1);
@@ -682,7 +682,7 @@ export async function runChecks() {
   await test("Immediate pointer release still resolves a directly hit sibling", async () => {
     const before = order("works");
     await hover(query('[data-item="work-1"]'));
-    const handle = query(".drag-handle"),
+    const handle = query('[data-toolbar-kind="item"] .drag-handle'),
       h = handle.getBoundingClientRect(),
       target = query('[data-item="work-2"]').getBoundingClientRect(),
       x = target.x + target.width / 2,
@@ -712,7 +712,7 @@ export async function runChecks() {
       "Cross-container drop committed",
     );
     await hover(query('[data-item="work-1"]'));
-    const handle = query(".drag-handle"),
+    const handle = query('[data-toolbar-kind="item"] .drag-handle'),
       h = handle.getBoundingClientRect();
     pointer(handle, "pointerdown", h.x + 13, h.y + 13, 1);
     pointer(document, "pointermove", h.x + 23, h.y + 13, 1);

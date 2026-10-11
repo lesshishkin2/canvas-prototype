@@ -9,9 +9,9 @@ import {
   useMemo,
 } from "react";
 import { createPortal } from "react-dom";
+import { useSortable, defaultAnimateLayoutChanges } from "@dnd-kit/sortable";
+import { CSS as DndCSS } from "@dnd-kit/utilities";
 import {
-  IconArrowUp,
-  IconArrowDown,
   IconPencil,
   IconEye,
   IconPlus,
@@ -22,7 +22,6 @@ import {
   IconTrash,
   IconArrowsMove,
   IconArrowUpRight,
-  IconDotsVertical,
 } from "@tabler/icons-react";
 import {
   ChevronLeft,
@@ -131,6 +130,10 @@ export function EditorProvider({
       (a, b) => a.level - b.level,
     )) {
       const { target, panel, setPositioned, hidden } = entry;
+      // Measure wrapped section groups at their final width before descendants.
+      if (target.kind === "section") {
+        panel.style.width = `${Math.min(target.node.getBoundingClientRect().width, viewport.right - viewport.left)}px`;
+      }
       const rect =
         !hidden &&
         ownerVisible &&
@@ -241,7 +244,7 @@ export function EditorProvider({
       suppress();
       if (selectedId && inputRef.current === "touch") {
         const node = document.querySelector(
-          `[data-item="${CSS.escape(selectedId)}"]`,
+          `[data-editor-target="${CSS.escape(selectedId)}"]`,
         );
         if (node) {
           locked.current = false;
@@ -621,11 +624,7 @@ export function EditorProvider({
           key={level}
           level={level}
           target={editing ? null : target}
-          hidden={
-            !!dragging ||
-            (menu?.kind === "section" && level > 0) ||
-            menu?.kind === "topbar"
-          }
+          hidden={!!dragging || !!menu}
           immediate={
             immediateExit || !!editing || !!dragging || !!active?.instant
           }
@@ -723,15 +722,7 @@ function FloatingTools({
 }) {
   const ref = useRef(null),
     [positioned, setPositioned] = useState(false);
-  const {
-    handles,
-    toolPanels,
-    layoutTools,
-    inputMode,
-    narrow,
-    menu,
-    toggleMenu,
-  } = useEditor();
+  const { handles, toolPanels, layoutTools, inputMode } = useEditor();
   const isSection = target.kind === "section";
   useLayoutEffect(() => {
     const entry = { target, panel: ref.current, level, setPositioned, hidden };
@@ -760,7 +751,7 @@ function FloatingTools({
     return () => clearTimeout(timeout);
   }, [exiting, immediate, positioned, onExitComplete]);
   const single = counts[target.list] === 1;
-  const h = handles.current.get(target.item);
+  const h = handles.current.get(isSection ? target.id : target.item);
   const imgTools = (
     <div className="tool-group">
       <ToolButton label="Replace image · demo">
@@ -816,49 +807,29 @@ function FloatingTools({
               <span>Edit block</span>
             </ToolButton>
           </div>
-          {inputMode === "touch" || narrow ? (
-            <div className="tool-group section-tools-end">
-              <ToolButton
-                label="More block actions"
-                aria-haspopup="menu"
-                aria-expanded={menu?.targetId === target.id}
-                onClick={(event) =>
-                  toggleMenu({
-                    kind: "section",
-                    targetId: target.id,
-                    anchor: event.currentTarget,
-                    hasImage: target.hasImage,
-                  })
-                }
-              >
-                <IconDotsVertical aria-hidden="true" />
+          {target.hasImage && (
+            <div className="section-background-tools">{imgTools}</div>
+          )}
+          <div className="section-tools-end">
+            <div className="tool-group">
+              <ToolButton label="Block visibility · demo">
+                <IconEye aria-hidden="true" />
+              </ToolButton>
+              <ToolButton label="Delete block · demo">
+                <IconTrash aria-hidden="true" />
               </ToolButton>
             </div>
-          ) : (
-            <>
-              {target.hasImage && (
-                <div className="section-background-tools">{imgTools}</div>
-              )}
-              <div className="section-tools-end">
-                <div className="tool-group">
-                  <ToolButton label="Block visibility · demo">
-                    <IconEye aria-hidden="true" />
-                  </ToolButton>
-                  <ToolButton label="Delete block · demo">
-                    <IconTrash aria-hidden="true" />
-                  </ToolButton>
-                </div>
-                <div className="tool-group">
-                  <ToolButton label="Move block up · demo">
-                    <IconArrowUp aria-hidden="true" />
-                  </ToolButton>
-                  <ToolButton label="Move block down · demo">
-                    <IconArrowDown aria-hidden="true" />
-                  </ToolButton>
-                </div>
-              </div>
-            </>
-          )}
+            <div className="tool-group">
+              <ToolButton
+                {...h?.attributes}
+                {...h?.listeners}
+                label="Drag block"
+                className="tool-button drag-handle section-drag-handle"
+              >
+                <IconArrowsMove aria-hidden="true" />
+              </ToolButton>
+            </div>
+          </div>
         </>
       ) : (
         <>
@@ -1005,13 +976,38 @@ export function CanvasLink({
   );
 }
 export function Section({ id, hasImage = false, className = "", children }) {
+  const { handles } = useEditor();
+  const {
+    setNodeRef,
+    attributes,
+    listeners,
+    transform,
+    transition,
+    isDragging,
+    isOver,
+    active,
+    index,
+  } = useSortable({ id, animateLayoutChanges: defaultAnimateLayoutChanges });
+  useEffect(() => {
+    handles.current.set(id, { attributes, listeners });
+    return () => handles.current.delete(id);
+  }, [handles, id, attributes, listeners]);
   return (
     <section
+      ref={setNodeRef}
+      style={{ transform: DndCSS.Translate.toString(transform), transition }}
       data-section={id}
       data-editor-target={id}
       data-kind="section"
       data-image={hasImage}
-      className={`canvas-section ${className}`}
+      className={`canvas-section ${className} ${isDragging ? "sort-source" : ""} ${isOver && active?.id !== id ? "section-drop-target" : ""}`}
+      data-drop-edge={
+        isOver && active?.id !== id
+          ? active?.data.current?.sortable.index < index
+            ? "after"
+            : "before"
+          : undefined
+      }
     >
       <div className="section-divider section-divider-start">
         <button aria-label="Add block · demo" data-editor-toolbar="true">

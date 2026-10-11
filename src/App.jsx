@@ -39,6 +39,7 @@ import "@fontsource-variable/inter";
 import "@fontsource-variable/cormorant-garamond";
 import { useCanvasMotion } from "./useCanvasMotion";
 import { getViewportBounds } from "./viewport";
+import { SectionList } from "./SectionList";
 
 const listStyles = {
   menu: { item: "menu-item", container: "menu-list", label: "Menu item" },
@@ -554,7 +555,7 @@ export function App() {
       }}
     >
       <Topbar />
-      <main className="canvas" aria-label="FORMA editor canvas">
+      <SectionList>
         <Section id="menu" className="site-menu">
           <nav className="menu-content" aria-label="Gallery navigation">
             <figure
@@ -700,7 +701,7 @@ export function App() {
             {text("invite.footer", "footer-note")}
           </div>
         </Section>
-      </main>
+      </SectionList>
     </EditorProvider>
   );
 }

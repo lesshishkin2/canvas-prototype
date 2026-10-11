@@ -268,10 +268,14 @@ export function useTouchAutoScroll(dragging, touch, pointerPosition) {
       const point = pointerPosition.current,
         bounds = getViewportBounds();
       const source = document.querySelector(
-        `[data-item="${CSS.escape(dragging)}"]`,
+        `[data-editor-target="${CSS.escape(dragging)}"]`,
       );
       const list = source
-        ?.closest("[data-list-container]")
+        ?.closest(
+          source.dataset.kind === "section"
+            ? "[data-section-list]"
+            : "[data-list-container]",
+        )
         ?.getBoundingClientRect();
       if (point && list && point.x >= list.left && point.x <= list.right) {
         const edge = Math.min(80, (bounds.bottom - bounds.top) / 4);

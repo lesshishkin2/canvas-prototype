@@ -73,8 +73,10 @@ function checkTools() {
     );
     for (const button of visible[i].querySelectorAll(".tool-button"))
       assert(
-        button.getBoundingClientRect().height === 44,
-        "Small touch control",
+        button.getBoundingClientRect().height === 32 &&
+          (button.classList.contains("section-edit-button") ||
+            button.getBoundingClientRect().width === 32),
+        "Canvas control must be 32 × 32",
       );
     for (let j = i + 1; j < visible.length; j++)
       assert(!controlsOverlap(visible[i], visible[j]), "Touch panels overlap");
@@ -180,23 +182,20 @@ export async function runMobileChecks() {
     "scroll retention, offscreen hiding, swipe and pointer cancellation",
   );
 
-  let more = panel("edges").querySelector('[aria-haspopup="menu"]');
-  await tap(more, { click: true });
+  const section = panel("edges");
   assert(
-    document.querySelector("[data-editor-menu]") && panels().length === 1,
-    "Section menu did not isolate its tools",
+    !section.querySelector('[aria-haspopup="menu"]') &&
+      section.querySelectorAll("button").length === 4,
+    "Block actions must be visible without an overflow menu",
   );
-  const outside = document.elementFromPoint(30, innerHeight - 20);
-  pointer(outside, "pointerdown", 30, innerHeight - 20);
-  pointer(outside, "pointerup", 30, innerHeight - 20);
-  outside.click();
-  await wait();
-  assert(
-    !document.querySelector("[data-editor-menu]") && panel("edge-tiny.image"),
-    "Outside dismissal selected underlying content",
-  );
+  await tap(section.querySelector('[aria-label="Block visibility · demo"]'), {
+    click: true,
+  });
+  assert(panel("edge-tiny.image"), "Block demo action changed selection");
   if (innerWidth < 768) {
-    more = document.querySelector('.editor-topbar [aria-haspopup="menu"]');
+    const more = document.querySelector(
+      '.editor-topbar [aria-haspopup="menu"]',
+    );
     await tap(more, { click: true });
     assert(
       [...document.querySelectorAll(".editor-menu button")]
@@ -206,7 +205,7 @@ export async function runMobileChecks() {
     );
     await tap(document.querySelector(".editor-menu button"), { click: true });
   }
-  results.push("section and topbar menus");
+  results.push("visible section actions and topbar menu");
 
   n = await show("edge-empty.cta");
   await tap(n);
