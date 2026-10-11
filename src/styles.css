@@ -1084,7 +1084,7 @@ body[data-editor-mode="dragging"] [data-kind="image"]::after {
 .floating-tools {
   --tool-radius: 5px;
   --tool-size: 36px;
-  --tool-group-gap: 8px;
+  --tool-group-gap: 6px;
   --tools-fade-duration: 125ms;
   --tools-ease-out: var(--ease-out);
   position: absolute;
