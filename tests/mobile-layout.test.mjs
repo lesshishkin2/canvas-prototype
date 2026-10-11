@@ -82,3 +82,46 @@ test("desktop placement retains the clipped-card guard and measured header edge"
     null,
   );
 });
+
+test("image tools stay below their card instead of jumping to a distant section toolbar", () => {
+  const image = rect(20, 255, 180, 72);
+  const sectionLeft = rect(8, 63, 78, 32);
+  const sectionRight = rect(279, 63, 103, 32);
+  const cardTools = rect(89, 263, 103, 32);
+  const tools = placeToolbar(
+    { kind: "image" },
+    image,
+    rect(0, 0, 63, 32),
+    view,
+    [sectionLeft, sectionRight, cardTools],
+  );
+  assert.equal(tools.top, cardTools.bottom + 6);
+  assert.equal(tools.left + tools.width / 2, image.left + image.width / 2);
+});
+
+test("link tools also resolve a local collision before a distant section row", () => {
+  const link = rect(90, 325, 100, 40);
+  const sectionTools = rect(8, 63, 78, 32);
+  const cardTools = rect(89, 263, 103, 32);
+  const tools = placeToolbar({ kind: "link" }, link, rect(0, 0, 32, 32), view, [
+    sectionTools,
+    cardTools,
+  ]);
+  assert.equal(tools.top, link.bottom + 7);
+  assert.equal(tools.right, link.right);
+});
+
+test("bottom-edge image tools stay near their card when falling back above", () => {
+  const image = rect(20, 785, 180, 59);
+  const sectionTools = rect(8, 63, 78, 32);
+  const cardTools = rect(89, 768, 103, 32);
+  const tools = placeToolbar(
+    { kind: "image" },
+    image,
+    rect(0, 0, 63, 32),
+    view,
+    [sectionTools, cardTools],
+  );
+  assert.equal(tools.bottom, cardTools.top - 6);
+  assert.equal(tools.left + tools.width / 2, image.left + image.width / 2);
+});

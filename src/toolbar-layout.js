@@ -129,16 +129,23 @@ function placeTouchToolbar(target, anchor, size, bounds, ancestors) {
       r.top < anchor.bottom &&
       r.bottom > anchor.top
     );
-  // Prefer the natural anchor, then below occupied rows, above, and finally sides.
-  const rows = [
-    top,
-    ...(outside ? [anchor.bottom + 7] : [clampY(top)]),
-    ...ancestors.map((a) => a.bottom + TOOL_GAP).sort((a, b) => a - b),
+  // Search relative to this object, not from the top of the ancestor chain.
+  // A pinned section toolbar must not steal the image's local collision fallback.
+  const candidates = [
+    ...ancestors.flatMap((a) => [
+      a.bottom + TOOL_GAP,
+      a.top - height - TOOL_GAP,
+    ]),
     anchor.bottom + 7,
-    ...ancestors.map((a) => a.top - height - TOOL_GAP).sort((a, b) => b - a),
     anchor.top - height - 7,
     minY,
     maxY,
+  ];
+  const rows = [
+    top,
+    ...(!outside ? [clampY(top)] : []),
+    ...candidates.filter((y) => y >= top).sort((a, b) => a - b),
+    ...candidates.filter((y) => y < top).sort((a, b) => b - a),
   ];
   for (const y of rows) {
     const r = rect(left, y);

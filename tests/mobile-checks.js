@@ -359,6 +359,17 @@ export async function runMobileEdgeChecks() {
     }
     checked.push(id);
   }
+  // A pinned section strip must not pull tools away from their small image.
+  const narrow = await show("edge-narrow.image");
+  window.scrollBy(0, narrow.getBoundingClientRect().top - 255);
+  await wait();
+  const itemTools = panel("edge-narrow").getBoundingClientRect();
+  const imageTools = panel("edge-narrow.image").getBoundingClientRect();
+  assert(
+    Math.abs(imageTools.top - itemTools.bottom - 6) < 0.5,
+    "Small-image tools jumped away from their card",
+  );
+  checkTools();
   const image = await show("edge-wide.image");
   await tap(image);
   assert(!panels().length, "Repeated image tap does not deselect");
