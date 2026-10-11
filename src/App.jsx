@@ -40,7 +40,6 @@ import "@fontsource-variable/cormorant-garamond";
 import { useCanvasMotion } from "./useCanvasMotion";
 import { getViewportBounds } from "./viewport";
 import { SectionList } from "./SectionList";
-import { SortInsertionMarker } from "./SortInsertionMarker";
 
 const listStyles = {
   menu: { item: "menu-item", container: "menu-list", label: "Menu item" },
@@ -477,12 +476,6 @@ function Repeater({ list, items, onChange, onReorder }) {
           ))}
         </Container>
       </SortableContext>
-      <SortInsertionMarker
-        container={container}
-        active={active}
-        over={over}
-        vertical={vertical}
-      />
       {createPortal(
         <DragOverlay dropAnimation={null} adjustScale={false}>
           {activeItem && (

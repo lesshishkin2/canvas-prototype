@@ -1266,14 +1266,6 @@ body[data-editor-mode="dragging"] [data-kind="image"]::after {
 .sort-source {
   opacity: 0.18;
 }
-.sort-insertion-marker {
-  position: absolute;
-  z-index: 998;
-  background: var(--purple);
-  border-radius: 2px;
-  box-shadow: 0 0 0 1px #fff9;
-  pointer-events: none;
-}
 .drag-preview {
   box-shadow: 0 16px 50px #0005;
   opacity: 0.94;

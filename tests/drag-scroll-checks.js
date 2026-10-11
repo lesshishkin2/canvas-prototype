@@ -514,11 +514,9 @@ export async function runDragFeedbackChecks(inputMode = "mouse") {
           q(".drop-target") === item(to),
           `${list} ${after ? "forward" : "backward"}: missed target (${q(".drop-target")?.dataset.item})`,
         );
-        const marker = q(".sort-insertion-marker");
-        assert(marker, `${list}: missing insertion indicator`);
         assert(
-          getComputedStyle(marker).pointerEvents === "none",
-          "Marker intercepts input",
+          !q(".sort-insertion-marker"),
+          `${list}: unwanted insertion line during drag`,
         );
         for (const id of ids) {
           const style = getComputedStyle(item(id));
@@ -531,21 +529,6 @@ export async function runDragFeedbackChecks(inputMode = "mouse") {
         assert(
           getComputedStyle(q(".drag-preview")).outlineStyle === "solid",
           "Dragged copy lost its own outline",
-        );
-        const r = item(to).getBoundingClientRect(),
-          m = marker.getBoundingClientRect();
-        const vertical =
-          list === "exhibitions" || (innerWidth <= 767 && list !== "menu");
-        const expected = vertical
-          ? after
-            ? r.bottom + 3
-            : r.top - 6
-          : after
-            ? r.right + 3
-            : r.left - 6;
-        assert(
-          Math.abs((vertical ? m.top : m.left) - expected) < 0.5,
-          `${list}: insertion boundary does not follow its displaced neighbour`,
         );
         const outside = { x: 2, y: 20 };
         pointer(document, "pointermove", outside.x, outside.y, 1, inputMode);
