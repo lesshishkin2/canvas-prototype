@@ -631,25 +631,31 @@ function FloatingTools({
     >
       {isSection ? (
         <>
-          <ToolButton label="Настройки секции · демо">
-            <IconAdjustmentsHorizontal aria-hidden="true" />
-          </ToolButton>
+          <div className="tool-group">
+            <ToolButton label="Настройки секции · демо">
+              <IconAdjustmentsHorizontal aria-hidden="true" />
+            </ToolButton>
+          </div>
           {target.hasImage && (
             <div className="section-background-tools">{imgTools}</div>
           )}
           <div className="section-tools-end">
-            <ToolButton label="Секция выше · демо">
-              <IconArrowUp aria-hidden="true" />
-            </ToolButton>
-            <ToolButton label="Секция ниже · демо">
-              <IconArrowDown aria-hidden="true" />
-            </ToolButton>
-            <ToolButton label="Видимость секции · демо">
-              <IconEye aria-hidden="true" />
-            </ToolButton>
-            <ToolButton label="Удалить секцию · демо">
-              <IconTrash aria-hidden="true" />
-            </ToolButton>
+            <div className="tool-group">
+              <ToolButton label="Видимость секции · демо">
+                <IconEye aria-hidden="true" />
+              </ToolButton>
+              <ToolButton label="Удалить секцию · демо">
+                <IconTrash aria-hidden="true" />
+              </ToolButton>
+            </div>
+            <div className="tool-group">
+              <ToolButton label="Секция выше · демо">
+                <IconArrowUp aria-hidden="true" />
+              </ToolButton>
+              <ToolButton label="Секция ниже · демо">
+                <IconArrowDown aria-hidden="true" />
+              </ToolButton>
+            </div>
           </div>
         </>
       ) : (

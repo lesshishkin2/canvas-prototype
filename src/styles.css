@@ -6,6 +6,7 @@
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
   --purple: #8054dd;
+  --editor-icon: #505662;
   --paper: #f3f1e9;
   --ink: #242720;
   --serif: "Cormorant Garamond Variable", Georgia, serif;
@@ -64,7 +65,7 @@ svg {
   background: #fff;
   border-bottom: 1px solid #dedfe3;
   font-size: 14px;
-  color: #505662;
+  color: var(--editor-icon);
   gap: 24px;
 }
 .topbar-left,
@@ -1028,30 +1029,35 @@ svg {
 }
 .section-tools {
   height: 40px;
-  background: color-mix(in srgb, var(--gray-800) 72%, transparent);
   padding: 6px 8px;
-  gap: 12px;
+  gap: 8px;
   filter: none;
   max-width: none;
+  /* Only the visible controls intercept the canvas, never the empty strip. */
+  pointer-events: none;
 }
-.section-tools > .tool-button,
-.section-tools-end > .tool-button {
-  height: 28px;
-  width: 28px;
-  background: none;
-  border: 0;
-  padding: 0;
-  border-radius: 4px;
+.section-tools .tool-group {
+  border-radius: 3px;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--gray-900) 12%, transparent);
 }
-.section-tools > .tool-button svg,
-.section-tools-end > .tool-button svg {
-  height: 20px;
-  width: 20px;
+.section-tools .tool-button {
+  background: #fff;
+  border-color: var(--gray-300);
+  color: var(--editor-icon);
+}
+.section-tools[data-positioned="true"]:not([data-exiting="true"]) .tool-button {
+  pointer-events: auto;
+}
+.section-tools .tool-button:hover:not([aria-disabled="true"]) {
+  background: var(--gray-100);
+}
+.section-tools .tool-button:active:not([aria-disabled="true"]) {
+  background: var(--gray-200);
 }
 .section-tools-end {
   margin-left: auto;
   display: flex;
-  gap: 16px;
+  gap: 8px;
 }
 .section-background-tools {
   display: flex;
