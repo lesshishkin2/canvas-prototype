@@ -792,10 +792,10 @@ function FloatingTools({
   const h = handles.current.get(isSection ? target.id : target.item);
   const imgTools = (
     <div className="tool-group">
-      <ToolButton label="Replace image · demo">
+      <ToolButton label="Replace image">
         <IconPhotoUp aria-hidden="true" />
       </ToolButton>
-      <ToolButton label="Edit image · demo">
+      <ToolButton label="Edit image">
         <IconPhotoEdit aria-hidden="true" />
       </ToolButton>
     </div>
@@ -838,7 +838,7 @@ function FloatingTools({
         <>
           <div className="tool-group">
             <ToolButton
-              label="Edit block · demo"
+              label="Edit block"
               className="tool-button section-edit-button"
             >
               <IconPencil aria-hidden="true" />
@@ -852,10 +852,10 @@ function FloatingTools({
           )}
           <div className="section-tools-end">
             <div className="tool-group">
-              <ToolButton label="Block visibility · demo">
+              <ToolButton label="Block visibility">
                 <IconEye aria-hidden="true" />
               </ToolButton>
-              <ToolButton label="Delete block · demo">
+              <ToolButton label="Delete block">
                 <IconTrash aria-hidden="true" />
               </ToolButton>
             </div>
@@ -879,8 +879,8 @@ function FloatingTools({
               <ToolButton
                 label={
                   target.kind === "item"
-                    ? "Edit item link · demo"
-                    : "Edit link · demo"
+                    ? "Edit item link"
+                    : "Edit link"
                 }
               >
                 <IconLink aria-hidden="true" />
@@ -1050,13 +1050,13 @@ export function Section({ id, hasImage = false, className = "", children }) {
       }
     >
       <div className="section-divider section-divider-start">
-        <button aria-label="Add block · demo" data-editor-toolbar="true">
+        <button aria-label="Add block" data-editor-toolbar="true">
           <IconPlus aria-hidden="true" />
         </button>
       </div>
       {children}
       <div className="section-divider section-divider-end">
-        <button aria-label="Add block · demo" data-editor-toolbar="true">
+        <button aria-label="Add block" data-editor-toolbar="true">
           <IconPlus aria-hidden="true" />
         </button>
       </div>
@@ -1071,12 +1071,12 @@ export function Topbar() {
       <div className="topbar-left">
         <button
           className="back-button"
-          title="Back · demo"
-          aria-label="Back · demo"
+          title="Back"
+          aria-label="Back"
         >
           <ChevronLeft size={18} aria-hidden="true" />
         </button>
-        <button className="page-switch" title="Switch page · demo">
+        <button className="page-switch" title="Switch page">
           <span>
             <span className="desktop-only">Page: </span>
             <strong>Main page</strong>
@@ -1087,25 +1087,25 @@ export function Topbar() {
       <div className="topbar-right">
         <button
           className="bare-button desktop-only"
-          title="Page settings · demo"
-          aria-label="Page settings · demo"
+          title="Page settings"
+          aria-label="Page settings"
         >
           <Settings size={20} aria-hidden="true" />
         </button>
         <button
           className="bare-button desktop-only"
-          title="Change theme · demo"
-          aria-label="Change theme · demo"
+          title="Change theme"
+          aria-label="Change theme"
         >
           <Palette size={20} aria-hidden="true" />
         </button>
-        <button className="preview-button desktop-only" title="Preview · demo">
+        <button className="preview-button desktop-only" title="Preview">
           <Eye size={19} aria-hidden="true" />
           Preview
         </button>
         <button
           className="save-button"
-          title={done ? "Finish editing" : "Demo: changes are not saved"}
+          title={done ? "Finish editing" : "Save changes"}
           data-finish-editing={done || undefined}
           onPointerDown={(event) => {
             if (done) event.preventDefault();

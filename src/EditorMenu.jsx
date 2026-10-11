@@ -70,7 +70,7 @@ export function EditorMenu({ menu, onClose }) {
           key={label}
           type="button"
           role="menuitem"
-          aria-label={`${label} · demo`}
+          aria-label={label}
           onClick={onClose}
         >
           <Icon aria-hidden="true" />

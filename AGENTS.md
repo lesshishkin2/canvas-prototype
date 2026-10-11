@@ -18,7 +18,7 @@ The fixed topbar keeps its original Site Builder design: Lucide ChevronLeft/Chev
 
 ## Interface language
 
-Keep editor menus, toolbar tooltips, action labels, and empty-field prompts in English, including mobile Done. The canvas navigation uses Collection, About, Exhibitions, Plan a visit, Contact, and Log in. Other gallery content remains in Russian. Preserve accessible labels and update existing browser selectors when interface wording changes.
+Keep editor menus, toolbar tooltips, action labels, and empty-field prompts in English, including mobile Done. The canvas navigation uses Collection, About, Exhibitions, Plan a visit, Contact, and Log in. Other gallery content remains in Russian. Use production-ready action wording in tooltips, titles and accessible labels: no “demo”, “prototype”, “not implemented” or similar qualifiers. Save uses “Save changes”; explain intentional demo behavior only in project documentation. Preserve useful disabled-state explanations and update existing browser selectors when interface wording changes.
 
 ## Mobile and hybrid input
 

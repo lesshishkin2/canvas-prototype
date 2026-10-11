@@ -188,7 +188,7 @@ export async function runMobileChecks() {
       section.querySelectorAll("button").length === 4,
     "Block actions must be visible without an overflow menu",
   );
-  await tap(section.querySelector('[aria-label="Block visibility · demo"]'), {
+  await tap(section.querySelector('[aria-label="Block visibility"]'), {
     click: true,
   });
   assert(panel("edge-tiny.image"), "Block demo action changed selection");

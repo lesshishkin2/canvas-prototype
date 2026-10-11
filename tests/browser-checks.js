@@ -418,7 +418,7 @@ export async function runChecks() {
     );
     assert(
       labels().join("|") ===
-        "Edit item link · demo|Duplicate item|Delete item|Drag item",
+        "Edit item link|Duplicate item|Delete item|Drag item",
       "Incorrect menu actions",
     );
     const item = query('[data-item="menu-1"]').getBoundingClientRect(),
@@ -438,7 +438,7 @@ export async function runChecks() {
     await wait(220);
     assert(toolbar()?.dataset.owner === "menu-1", "Menu toolbar lost over gap");
     const href = location.href;
-    await action("Edit item link · demo");
+    await action("Edit item link");
     assert(
       location.href === href && order("menu").length === 5,
       "Link placeholder changed page",
@@ -533,7 +533,7 @@ export async function runChecks() {
     await hover(query('[data-item="work-1"]'));
     assert(
       labels().join("|") ===
-        "Replace image · demo|Edit image · demo|Edit item link · demo|Duplicate item|Delete item|Drag item",
+        "Replace image|Edit image|Edit item link|Duplicate item|Delete item|Drag item",
       "Wrong action order",
     );
     await hover(field("work-1.title"), false);
@@ -543,7 +543,7 @@ export async function runChecks() {
     );
     await hover(field("work-1.cta"), false);
     assert(
-      labels().length === 1 && labels()[0] === "Edit link · demo",
+      labels().length === 1 && labels()[0] === "Edit link",
       "Nested link target failed",
     );
   });
@@ -803,12 +803,12 @@ export async function runChecks() {
     await hover(visual);
     assert(
       toolbar()?.dataset.owner === "study-1.image" &&
-        labels().join("|") === "Replace image · demo|Edit image · demo",
+        labels().join("|") === "Replace image|Edit image",
       "Nested image should own only the two image actions",
     );
     const before = img.src;
-    await action("Replace image · demo");
-    await action("Edit image · demo");
+    await action("Replace image");
+    await action("Edit image");
     assert(
       img.src === before && location.href === href && !query(".drag-preview"),
       "Image demos changed data or started dragging",
