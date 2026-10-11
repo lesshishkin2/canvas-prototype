@@ -1,27 +1,41 @@
 import { TOOL_GAP } from "./toolbar-layout.js";
 
 // Count actual button rectangles, not the transparent space between groups.
-// Exactly half a button is intentionally below the activation threshold.
+// The threshold is half the FULL height of the underlying image/link.
 export function measureToolbarClearance(
   buttons,
   content,
   viewportTop = -Infinity,
 ) {
   let clearance = 0;
-  for (const button of buttons) {
-    for (const target of content) {
-      if (target.top < viewportTop) continue;
-      const overlap =
-        Math.min(button.bottom, target.bottom) -
-        Math.max(button.top, target.top);
-      if (
+  for (const target of content) {
+    if (target.top < viewportTop || target.height <= 0) continue;
+    const overlapping = buttons.filter(
+      (button) =>
         button.left < target.right &&
         button.right > target.left &&
-        overlap > button.height / 2
-      ) {
-        clearance = Math.max(clearance, button.bottom + TOOL_GAP - target.top);
-      }
+        button.top < target.bottom &&
+        button.bottom > target.top,
+    );
+    const intervals = overlapping
+      .map((button) => [
+        Math.max(button.top, target.top),
+        Math.min(button.bottom, target.bottom),
+      ])
+      .sort((a, b) => a[0] - b[0]);
+    // Multiple buttons on one row cover the same height only once. Wrapped
+    // rows can jointly cover >50%; their transparent vertical gap is excluded.
+    let covered = 0,
+      end = -Infinity;
+    for (const [top, bottom] of intervals) {
+      covered += Math.max(0, bottom - Math.max(top, end));
+      end = Math.max(end, bottom);
     }
+    if (covered > target.height / 2)
+      clearance = Math.max(
+        clearance,
+        ...overlapping.map((button) => button.bottom + TOOL_GAP - target.top),
+      );
   }
   return Math.ceil(clearance);
 }

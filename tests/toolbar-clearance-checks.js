@@ -90,6 +90,16 @@ export async function runToolbarClearanceChecks(pointerType = "touch") {
   const image = target("edge-narrow.image"),
     card = target("edge-narrow");
   await show(image);
+  assert(
+    !reserved(card),
+    "36px controls over a 72px image are exactly 50%, not above it",
+  );
+  results.push("72px thumbnail retains its layout at exactly 50% coverage");
+  await reset();
+  // A shorter image crosses the content-relative threshold. Keep the gallery
+  // fixture at its original 72px outside this check.
+  image.querySelector("img").style.height = "40px";
+  await show(image);
   assert(reserved(card) > 0, "Card did not reserve space");
   assert(
     rect(image).top >= buttonsBottom("edge-narrow") + 5.5,
@@ -97,7 +107,9 @@ export async function runToolbarClearanceChecks(pointerType = "touch") {
   );
   assert(
     Math.abs(
-      rect(panel("edge-narrow.image")).top + 18 - (rect(image).top + 36),
+      rect(panel("edge-narrow.image")).top +
+        18 -
+        (rect(image).top + rect(image).height / 2),
     ) < 1,
     "Image tools are not centered in the displaced image",
   );
@@ -135,20 +147,33 @@ export async function runToolbarClearanceChecks(pointerType = "touch") {
 
   const study = document.querySelector(".study-card"),
     studyImage = study.querySelector(".study-image");
-  study.style.paddingTop = "26px";
+  await show(studyImage);
+  assert(
+    !reserved(study),
+    "Large image moved despite less than half being covered",
+  );
+  await reset();
+  studyImage.querySelector("img").style.height = "40px";
+  study.style.paddingTop = "24px";
   await show(studyImage);
   assert(!reserved(study), "Exactly 50% must not trigger clearance");
   await reset();
-  study.style.paddingTop = "25px";
+  study.style.paddingTop = "23px";
   await show(studyImage);
-  assert(reserved(study) === 25, "19px overlap must trigger 25px clearance");
+  assert(
+    reserved(study) === 27,
+    "21px overlap of a 40px image must trigger clearance",
+  );
   await reset();
   assert(
-    study.style.paddingTop === "25px",
+    study.style.paddingTop === "23px",
     "Original inline padding was not restored",
   );
   study.style.removeProperty("padding-top");
-  results.push("strict 50% threshold; original inline styles restored");
+  studyImage.querySelector("img").style.removeProperty("height");
+  results.push(
+    "content-relative 50% threshold for large and small images; original inline styles restored",
+  );
 
   await show(target("edge-link.cta"));
   const link = target("edge-link.cta"),
@@ -201,6 +226,7 @@ export async function runToolbarClearanceChecks(pointerType = "touch") {
     "Cancelled drag leaked a preview",
   );
   await reset();
+  image.querySelector("img").style.removeProperty("height");
   assert(
     document.documentElement.scrollWidth <= innerWidth,
     "Horizontal overflow",

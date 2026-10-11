@@ -12,10 +12,38 @@ const rect = (left, top, width, height) => ({
 });
 const button = rect(100, 108, 36, 36);
 
-test("reserve space only above 50% of the button height, not the image height", () => {
-  assert.equal(measureToolbarClearance([button], [rect(110, 126, 20, 32)]), 0);
-  assert.equal(measureToolbarClearance([button], [rect(110, 125, 20, 32)]), 25);
-  assert.equal(measureToolbarClearance([button], [rect(110, 108, 20, 12)]), 0);
+test("use the underlying element's full height: exactly 50% stays, above 50% moves", () => {
+  assert.equal(measureToolbarClearance([button], [rect(110, 128, 20, 32)]), 0);
+  assert.equal(measureToolbarClearance([button], [rect(110, 127, 20, 32)]), 23);
+  assert.equal(measureToolbarClearance([button], [rect(110, 108, 20, 12)]), 42);
+});
+
+test("a whole 36px button over a large image or a 72px thumbnail does not trigger clearance", () => {
+  assert.equal(
+    measureToolbarClearance([button], [rect(100, 100, 200, 300)]),
+    0,
+  );
+  assert.equal(measureToolbarClearance([button], [rect(100, 100, 180, 72)]), 0);
+  assert.equal(
+    measureToolbarClearance([button], [rect(100, 100, 180, 70)]),
+    50,
+  );
+});
+
+test("union covered height across wrapped rows without double-counting adjacent buttons or gaps", () => {
+  const image = rect(100, 100, 180, 100);
+  assert.equal(
+    measureToolbarClearance([button, rect(136, 108, 36, 36)], [image]),
+    0,
+  );
+  assert.equal(
+    measureToolbarClearance([button, rect(100, 152, 36, 20)], [image]),
+    78,
+  );
+  assert.equal(
+    measureToolbarClearance([button, rect(100, 152, 36, 14)], [image]),
+    0,
+  );
 });
 
 test("a gap between actual buttons and horizontal near misses do not activate padding", () => {
@@ -33,7 +61,7 @@ test("reserve the maximum missing space once, including a 6px gap", () => {
   assert.equal(
     measureToolbarClearance(
       [button, rect(150, 108, 36, 36)],
-      [rect(100, 120, 36, 50), rect(150, 110, 36, 70)],
+      [rect(100, 120, 36, 40), rect(150, 110, 36, 60)],
     ),
     40,
   );
@@ -49,7 +77,7 @@ test("a large image already clipped by the topbar must not generate a huge space
     0,
   );
   assert.equal(
-    measureToolbarClearance([rect(8, 63, 36, 36)], [rect(0, 75, 390, 72)], 57),
+    measureToolbarClearance([rect(8, 63, 36, 36)], [rect(0, 75, 390, 32)], 57),
     30,
   );
 });
