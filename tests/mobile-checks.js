@@ -366,7 +366,13 @@ export async function runMobileEdgeChecks() {
   const itemTools = panel("edge-narrow").getBoundingClientRect();
   const imageTools = panel("edge-narrow.image").getBoundingClientRect();
   assert(
-    Math.abs(imageTools.top - itemTools.bottom - 6) < 0.5,
+    imageTools.top >= itemTools.bottom + 6 - 0.5 &&
+      Math.abs(
+        imageTools.top +
+          imageTools.height / 2 -
+          (narrow.getBoundingClientRect().top +
+            narrow.getBoundingClientRect().height / 2),
+      ) < 0.5,
     "Small-image tools jumped away from their card",
   );
   checkTools();

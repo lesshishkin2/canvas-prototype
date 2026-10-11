@@ -313,6 +313,7 @@ function Repeater({ list, items, onChange, onReorder }) {
   // A new array on each hover render makes useSortable disable transitions.
   const itemIds = useMemo(() => items.map((item) => item.id), [items]);
   const grabOffset = useRef({ x: 0, y: 0 });
+  const previewPadding = useRef("");
   const dragPoint = useCallback((point) => {
     const viewport = getViewportBounds();
     if (!point || point.y < viewport.top || point.y > viewport.bottom)
@@ -389,9 +390,13 @@ function Repeater({ list, items, onChange, onReorder }) {
       }
       onDragStart={({ active, activatorEvent }) => {
         startDrag(active.id);
-        const rect = Array.from(container.current?.children || [])
-          .find((node) => node.dataset.item === active.id)
-          ?.getBoundingClientRect();
+        const source = Array.from(container.current?.children || []).find(
+          (node) => node.dataset.item === active.id,
+        );
+        const rect = source?.getBoundingClientRect();
+        // Preserve temporary toolbar clearance in the drag copy; otherwise its
+        // image jumps upward as soon as the portal handle starts the drag.
+        previewPadding.current = source?.style.paddingTop || "";
         const { clientX: x, clientY: y } = activatorEvent;
         // A portal handle may sit outside a compact item. Track a point inside
         // the dragged item, preserving that grip offset for collision and drop.
@@ -471,7 +476,10 @@ function Repeater({ list, items, onChange, onReorder }) {
       {createPortal(
         <DragOverlay dropAnimation={null}>
           {activeItem && (
-            <article className={`${itemClass(list, activeItem)} drag-preview`}>
+            <article
+              className={`${itemClass(list, activeItem)} drag-preview`}
+              style={{ paddingTop: previewPadding.current || undefined }}
+            >
               <ItemView item={activeItem} list={list} ghost />
             </article>
           )}

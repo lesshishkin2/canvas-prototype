@@ -32,6 +32,7 @@ import {
   MoreVertical,
 } from "lucide-react";
 import { placeToolbar, TOOL_INSET } from "./toolbar-layout";
+import { createToolbarClearance } from "./toolbar-clearance";
 import { Tooltips } from "./Tooltip";
 import {
   getViewportBounds,
@@ -106,6 +107,16 @@ export function EditorProvider({
     handlePressed = useRef(false);
   const handles = useRef(new Map());
   const toolPanels = useRef(new Map());
+  const clearance = useRef(null);
+  if (!clearance.current) clearance.current = createToolbarClearance();
+  const clearanceExit = useRef(null);
+  useEffect(
+    () => () => {
+      clearTimeout(clearanceExit.current);
+      clearance.current.reset();
+    },
+    [],
+  );
   const targets = useMemo(() => toolTargets(active), [active]);
   useEffect(() => {
     const query = matchMedia("(max-width: 767px)");
@@ -160,6 +171,14 @@ export function EditorProvider({
       }
       setPositioned(!!rect);
       if (rect) {
+        // Reserve flow space before measuring descendants, while this owner's
+        // tools are still at their first position. Subsequent layouts are read-only.
+        if (
+          !editingRef.current &&
+          !dragRef.current &&
+          (target.kind === "section" || target.kind === "item")
+        )
+          clearance.current.reserve(target, panel, viewport);
         // The section strip is transparent. Only its visible button groups
         // occupy space; descendants can share the empty part of that row.
         const obstacles =
@@ -173,6 +192,13 @@ export function EditorProvider({
     }
   }, []);
   const choose = useCallback((target, immediate = false) => {
+    clearTimeout(clearanceExit.current);
+    const editingNode =
+      editingRef.current &&
+      document.querySelector(
+        `[data-field="${CSS.escape(editingRef.current)}"]`,
+      );
+    clearance.current.retain(editingNode || target?.node);
     activeRef.current = target;
     setImmediateExit(immediate);
     setActive((old) =>
@@ -226,7 +252,13 @@ export function EditorProvider({
   const stopEditing = useCallback(() => {
     editingRef.current = null;
     setEditing(null);
-  }, []);
+    // Allow an outside touch to finish (up to 300 ms) before collapsing the old
+    // owner. A new selection/edit cancels this, preserving the tapped hit target.
+    clearanceExit.current = setTimeout(() => {
+      clearance.current.retain(activeRef.current?.node);
+      layoutTools();
+    }, 350);
+  }, [layoutTools]);
   const startDrag = useCallback(
     (id) => {
       onBeforeDrag?.();
@@ -510,6 +542,12 @@ export function EditorProvider({
       clear();
     }
     function viewportResized() {
+      // Remeasure responsive padding, but never disturb native keyboard/caret
+      // geometry or a drag already measured by dnd-kit.
+      if (!editingRef.current && !dragRef.current) {
+        clearance.current.reset();
+        clearance.current.retain(activeRef.current?.node);
+      }
       viewportChanged();
       if (inputRef.current === "touch") revealCaret();
     }
