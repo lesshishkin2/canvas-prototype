@@ -12,7 +12,7 @@ import { createPortal } from "react-dom";
 import {
   IconArrowUp,
   IconArrowDown,
-  IconAdjustmentsHorizontal,
+  IconPencil,
   IconEye,
   IconPlus,
   IconLink,
@@ -632,8 +632,12 @@ function FloatingTools({
       {isSection ? (
         <>
           <div className="tool-group">
-            <ToolButton label="Настройки секции · демо">
-              <IconAdjustmentsHorizontal aria-hidden="true" />
+            <ToolButton
+              label="Edit block · демо"
+              className="tool-button section-edit-button"
+            >
+              <IconPencil aria-hidden="true" />
+              <span>Edit block</span>
             </ToolButton>
           </div>
           {target.hasImage && (

@@ -1028,7 +1028,7 @@ svg {
   transform-origin: center;
 }
 .section-tools {
-  height: 40px;
+  height: 46px;
   padding: 6px 8px;
   gap: 8px;
   filter: none;
@@ -1041,9 +1041,19 @@ svg {
   box-shadow: 0 1px 3px color-mix(in srgb, var(--gray-900) 12%, transparent);
 }
 .section-tools .tool-button {
+  height: 34px;
+  width: 34px;
   background: #fff;
   border-color: var(--gray-300);
   color: var(--editor-icon);
+}
+.section-tools .section-edit-button {
+  width: auto;
+  padding: 0 10px;
+  gap: 8px;
+  font-size: 15px;
+  line-height: 1;
+  white-space: nowrap;
 }
 .section-tools[data-positioned="true"]:not([data-exiting="true"]) .tool-button {
   pointer-events: auto;
