@@ -12,7 +12,7 @@ const frame = () => new Promise(requestAnimationFrame);
 const assert = (ok, message) => {
   if (!ok) throw Error(message);
 };
-function pointer(node, type, x, y, buttons = 0) {
+function pointer(node, type, x, y, buttons = 0, pointerType = "mouse") {
   node.dispatchEvent(
     new PointerEvent(type, {
       bubbles: true,
@@ -21,12 +21,12 @@ function pointer(node, type, x, y, buttons = 0) {
       buttons,
       button: 0,
       pointerId: 1,
-      pointerType: "mouse",
+      pointerType,
       isPrimary: true,
     }),
   );
 }
-async function begin(id) {
+async function begin(id, inputMode = "mouse") {
   const node = item(id);
   document.activeElement?.blur();
   pointer(q(".editor-topbar"), "pointermove", 400, 20);
@@ -34,14 +34,17 @@ async function begin(id) {
   else window.scrollTo(0, scrollY + node.getBoundingClientRect().top - 280);
   await wait(100);
   const r = node.getBoundingClientRect();
-  pointer(node, "pointermove", r.left + 3, r.top + 3);
+  if (inputMode === "touch") {
+    pointer(node, "pointerdown", r.left + 3, r.top + 3, 1, inputMode);
+    pointer(node, "pointerup", r.left + 3, r.top + 3, 0, inputMode);
+  } else pointer(node, "pointermove", r.left + 3, r.top + 3);
   await wait();
   const handle = panel(id)?.querySelector(".drag-handle");
   assert(handle, `Missing handle for ${id}`);
   const h = handle.getBoundingClientRect();
   const start = { x: h.left + h.width / 2, y: h.top + h.height / 2 };
-  pointer(handle, "pointerdown", start.x, start.y, 1);
-  pointer(document, "pointermove", start.x + 10, start.y, 1);
+  pointer(handle, "pointerdown", start.x, start.y, 1, inputMode);
+  pointer(document, "pointermove", start.x + 10, start.y, 1, inputMode);
   await wait(80);
   assert(
     document.body.dataset.editorMode === "dragging",
@@ -49,7 +52,7 @@ async function begin(id) {
   );
   return start;
 }
-async function finish(point, cancel = false) {
+async function finish(point, cancel = false, inputMode = "mouse") {
   if (cancel)
     document.dispatchEvent(
       new KeyboardEvent("keydown", {
@@ -58,7 +61,7 @@ async function finish(point, cancel = false) {
         code: "Escape",
       }),
     );
-  pointer(document, "pointerup", point.x, point.y);
+  pointer(document, "pointerup", point.x, point.y, 0, inputMode);
   await wait();
   assert(!q(".drag-preview"), "Drag overlay leaked");
 }
@@ -222,5 +225,89 @@ export async function runDragScrollChecks() {
   results.push(
     "The complete boundary add button is above neighbouring content",
   );
+  return { viewport: { width: innerWidth, height: innerHeight }, results };
+}
+
+// Unequal slots must move content without stretching text, images or borders.
+export async function runSortSizeChecks({
+  inputMode = "mouse",
+  lists = ["menu", "edges", "duets"],
+} = {}) {
+  await document.fonts.ready;
+  const results = [];
+  for (const list of lists) {
+    for (const cancel of [true, false]) {
+      const ids = order(list);
+      const from = ids[0],
+        to = ids[1];
+      const start = await begin(from, inputMode);
+      const source = item(from).getBoundingClientRect();
+      const slot = item(to).getBoundingClientRect();
+      const offset = {
+        x:
+          start.x < source.left || start.x > source.right
+            ? source.left + source.width / 2 - start.x
+            : 0,
+        y:
+          start.y < source.top || start.y > source.bottom
+            ? source.top + source.height / 2 - start.y
+            : 0,
+      };
+      const end = {
+        x: Math.max(
+          8,
+          Math.min(innerWidth - 8, slot.left + slot.width / 2 - offset.x),
+        ),
+        y: slot.top + Math.min(70, slot.height / 2) - offset.y,
+      };
+      const nodes = ids.map(item);
+      const dimensions = nodes.map((node) => node.getBoundingClientRect());
+      const preview = q(".drag-preview");
+      const previewSize = preview.getBoundingClientRect();
+      let maxSizeError = 0;
+      try {
+        pointer(document, "pointermove", end.x, end.y, 1, inputMode);
+        for (let i = 0; i < 20; i++) {
+          await frame();
+          [...nodes, preview].forEach((node, index) => {
+            const before = dimensions[index] || previewSize;
+            const rect = node.getBoundingClientRect();
+            const error = Math.max(
+              Math.abs(rect.width - before.width),
+              Math.abs(rect.height - before.height),
+            );
+            maxSizeError = Math.max(maxSizeError, error);
+            assert(
+              error < 0.5,
+              `${list}: ${node.dataset.item || "preview"} stretched by ${error.toFixed(2)}px during drag`,
+            );
+          });
+        }
+        assert(
+          q(".drop-target")?.dataset.item === to,
+          `${list}: missed the intended slot`,
+        );
+        await finish(end, cancel, inputMode);
+        const expected = cancel ? ids : [ids[1], ids[0], ...ids.slice(2)];
+        assert(
+          JSON.stringify(order(list)) === JSON.stringify(expected),
+          `${list}: incorrect order after ${cancel ? "cancel" : "drop"}`,
+        );
+        assert(!q(".drag-preview"), `${list}: preview remains after drop`);
+        nodes.forEach((node) => {
+          const value = getComputedStyle(node).transform;
+          const matrix = new DOMMatrix(value === "none" ? undefined : value);
+          assert(
+            Math.abs(matrix.a - 1) < 0.001 && Math.abs(matrix.d - 1) < 0.001,
+            `${list}: scale remains after drop`,
+          );
+        });
+        results.push({ list, cancel, maxSizeError });
+      } finally {
+        if (document.body.dataset.editorMode === "dragging")
+          await finish(end, true, inputMode);
+      }
+    }
+  }
   return { viewport: { width: innerWidth, height: innerHeight }, results };
 }

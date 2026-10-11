@@ -291,7 +291,9 @@ function SortableItem({ item, list, count, onChange, over, active }) {
     handles.current.set(item.id, { attributes, listeners });
     return () => handles.current.delete(item.id);
   }, [handles, item.id, attributes, listeners]);
-  const styles = { transform: CSS.Transform.toString(transform), transition };
+  // Rect sorting also scales items to their destination slot. Slots can have
+  // different sizes, so apply only translation to preserve content proportions.
+  const styles = { transform: CSS.Translate.toString(transform), transition };
   return (
     <Tag
       ref={setNodeRef}
@@ -481,7 +483,7 @@ function Repeater({ list, items, onChange, onReorder }) {
         </Container>
       </SortableContext>
       {createPortal(
-        <DragOverlay dropAnimation={null}>
+        <DragOverlay dropAnimation={null} adjustScale={false}>
           {activeItem && (
             <article
               className={`${itemClass(list, activeItem)} drag-preview`}
